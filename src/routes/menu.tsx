@@ -41,9 +41,19 @@ function MenuPage() {
             const qty = qtyFor(item.id);
             return (
               <li key={item.id} className="flex flex-wrap items-center justify-between gap-6 py-8">
-                <div className="max-w-xl">
-                  <h2 className="text-2xl text-cream">{item.name}</h2>
-                  <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
+                <div className="flex items-center gap-5">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    loading="lazy"
+                    width={1024}
+                    height={1024}
+                    className="h-24 w-24 flex-none rounded-xl object-cover sm:h-28 sm:w-28"
+                  />
+                  <div className="max-w-xl">
+                    <h2 className="text-2xl text-cream">{item.name}</h2>
+                    <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-6">
                   <div className="text-right">
