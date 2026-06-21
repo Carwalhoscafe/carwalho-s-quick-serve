@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ShoppingBag } from "lucide-react";
 import { useCart } from "@/lib/cart";
+import logoWhite from "@/assets/carwalhos-logo-white.png.asset.json";
 
 const nav = [
   { to: "/", label: "Home" },
@@ -16,16 +17,14 @@ export function SiteHeader() {
   return (
     <header className="absolute inset-x-0 top-0 z-30">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-        <Link to="/" className="flex items-center gap-2">
-          <span
-            className="text-2xl text-primary"
-            style={{ fontFamily: "var(--font-script)" }}
-          >
-            Carwalho&apos;s
-          </span>
-          <span className="hidden text-xs uppercase tracking-[0.3em] text-cream/70 sm:inline">
-            Cafe
-          </span>
+        <Link to="/" className="flex items-center" aria-label="Carwalho's Cafe — Home">
+          <img
+            src={logoWhite.url}
+            alt="Carwalho's Cafe"
+            width={200}
+            height={60}
+            className="h-10 w-auto sm:h-12"
+          />
         </Link>
 
         <nav className="hidden items-center gap-8 text-sm font-medium text-cream/85 md:flex">
