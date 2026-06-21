@@ -8,35 +8,51 @@ import {
   type ReactNode,
 } from "react";
 
+import sugarcaneAsset from "@/assets/product-sugarcane.jpg.asset.json";
+import pondicherryAsset from "@/assets/product-coconut-pondicherry.jpg.asset.json";
+import pollachiAsset from "@/assets/product-coconut-pollachi.jpg.asset.json";
+
 export type Product = {
   id: string;
   name: string;
   price: number; // in rupees
   unit: string;
   description?: string;
+  image: string;
 };
 
 export const PRODUCTS: Product[] = [
-  {
-    id: "coconut-pondicherry",
-    name: "Tender Coconut — Pondicherry",
-    price: 50,
-    unit: "per piece",
-    description: "Naturally hydrating, straight from the coast.",
-  },
-  {
-    id: "coconut-pollachi",
-    name: "Tender Coconut — Pollachi",
-    price: 70,
-    unit: "per piece",
-    description: "Larger, sweeter Pollachi variety.",
-  },
   {
     id: "sugarcane-juice-1l",
     name: "Sugarcane Juice",
     price: 120,
     unit: "per 1 litre",
     description: "Cold-pressed daily from handpicked cane.",
+    image: sugarcaneAsset.url,
+  },
+  {
+    id: "coconut-pondicherry-small",
+    name: "Tender Coconut — Pondicherry (Regular)",
+    price: 50,
+    unit: "per piece",
+    description: "Naturally hydrating, straight from the coast.",
+    image: pondicherryAsset.url,
+  },
+  {
+    id: "coconut-pondicherry-large",
+    name: "Tender Coconut — Pondicherry (Large)",
+    price: 70,
+    unit: "per piece",
+    description: "A bigger Pondicherry coconut — more water, more refreshment.",
+    image: pondicherryAsset.url,
+  },
+  {
+    id: "coconut-pollachi",
+    name: "Tender Coconut — Pollachi",
+    price: 80,
+    unit: "per piece",
+    description: "Larger, sweeter Pollachi variety — naturally rich and creamy.",
+    image: pollachiAsset.url,
   },
 ];
 
