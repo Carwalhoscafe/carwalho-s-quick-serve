@@ -23,8 +23,8 @@ export function CartDrawer() {
   return (
     <Sheet open={isOpen} onOpenChange={setOpen}>
       <SheetContent
-        side="left"
-        className="flex w-full flex-col gap-0 border-r border-border bg-background p-0 sm:max-w-md"
+        side="right"
+        className="flex w-full flex-col gap-0 border-l border-border bg-background p-0 sm:max-w-md"
       >
         <SheetHeader className="space-y-1 border-b border-border px-6 py-5">
           <div className="flex items-center justify-between">
