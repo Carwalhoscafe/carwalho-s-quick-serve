@@ -132,27 +132,76 @@ function Home() {
           </Link>
         </div>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {featuredMenu.map((item) => (
-            <article
-              key={item.name}
-              className="group flex flex-col justify-between rounded-2xl border border-border/70 bg-card/60 p-7 transition-colors hover:border-primary/60"
-            >
-              <div>
-                <h3 className="text-2xl text-cream">{item.name}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  {item.description}
-                </p>
-              </div>
-              <div className="mt-8 flex items-baseline justify-between border-t border-border/60 pt-5">
-                <span className="text-3xl text-primary" style={{ fontFamily: "var(--font-display)" }}>
-                  {item.price}
-                </span>
-                <span className="text-sm text-muted-foreground">{item.unit}</span>
-              </div>
-            </article>
-          ))}
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {PRODUCTS.map((item) => {
+            const qty = qtyFor(item.id);
+            return (
+              <article
+                key={item.id}
+                className="group flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/60 transition-colors hover:border-primary/60"
+              >
+                <div className="aspect-square w-full overflow-hidden bg-card">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    loading="lazy"
+                    width={1024}
+                    height={1024}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                  />
+                </div>
+                <div className="flex flex-1 flex-col p-6">
+                  <h3 className="text-lg text-cream">{item.name}</h3>
+                  <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                    {item.description}
+                  </p>
+                  <div className="mt-6 flex items-end justify-between gap-3 border-t border-border/60 pt-5">
+                    <div>
+                      <span
+                        className="text-2xl text-primary"
+                        style={{ fontFamily: "var(--font-display)" }}
+                      >
+                        ₹{item.price}
+                      </span>
+                      <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
+                        {item.unit}
+                      </p>
+                    </div>
+                    {qty === 0 ? (
+                      <button
+                        onClick={() => add(item.id, 1)}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.03]"
+                      >
+                        <Plus className="h-4 w-4" /> Add
+                      </button>
+                    ) : (
+                      <div className="inline-flex items-center gap-2 rounded-full border border-primary/60 bg-card/80 p-1">
+                        <button
+                          onClick={() => setQty(item.id, qty - 1)}
+                          aria-label="Decrease quantity"
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-full text-cream hover:bg-primary/10"
+                        >
+                          <Minus className="h-3.5 w-3.5" />
+                        </button>
+                        <span className="min-w-5 text-center text-sm font-semibold text-cream">
+                          {qty}
+                        </span>
+                        <button
+                          onClick={() => setQty(item.id, qty + 1)}
+                          aria-label="Increase quantity"
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground hover:scale-[1.05]"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </article>
+            );
+          })}
         </div>
+
       </section>
 
       {/* ── Section 4 · How it works ────────────────────────────────── */}
