@@ -58,6 +58,9 @@ const valueProps = [
 ];
 
 function Home() {
+  const { add, setQty, items } = useCart();
+  const qtyFor = (id: string) => items.find((i) => i.id === id)?.qty ?? 0;
+
   return (
     <div className="min-h-screen">
       {/* ── Section 1 · Hero illustration ───────────────────────────── */}
