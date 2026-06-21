@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Leaf, MapPin, Clock, Sparkles } from "lucide-react";
+import { ArrowRight, Leaf, MapPin, Clock, Sparkles, Minus, Plus } from "lucide-react";
 
 import heroAsset from "@/assets/carwalhos-hero.png.asset.json";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { PRODUCTS, useCart } from "@/lib/cart";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
