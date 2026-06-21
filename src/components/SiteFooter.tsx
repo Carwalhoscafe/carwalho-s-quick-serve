@@ -1,17 +1,19 @@
 import { Link } from "@tanstack/react-router";
+import logoWhite from "@/assets/carwalhos-logo-white.png.asset.json";
 
 export function SiteFooter() {
   return (
     <footer className="border-t border-border/60 bg-card/40">
       <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-3">
         <div>
-          <p
-            className="text-3xl text-primary"
-            style={{ fontFamily: "var(--font-script)" }}
-          >
-            Carwalho&apos;s Cafe
-          </p>
-          <p className="mt-3 max-w-xs text-sm text-muted-foreground">
+          <img
+            src={logoWhite.url}
+            alt="Carwalho's Cafe"
+            width={200}
+            height={60}
+            className="h-10 w-auto"
+          />
+          <p className="mt-4 max-w-xs text-sm text-muted-foreground">
             Fresh sugarcane juice & tender coconut, hand-pressed daily and
             delivered to your door across Pallavaram.
           </p>
