@@ -83,6 +83,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Fresh sugarcane juice & tender coconut, delivered across Pallavaram." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:title", content: "Carwalho's Cafe" },
+      { name: "twitter:title", content: "Carwalho's Cafe" },
+      { property: "og:description", content: "Fresh sugarcane juice & tender coconut, delivered across Pallavaram." },
+      { name: "twitter:description", content: "Fresh sugarcane juice & tender coconut, delivered across Pallavaram." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2be0713e-7855-4828-b645-2e4b3eea69a4" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2be0713e-7855-4828-b645-2e4b3eea69a4" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
