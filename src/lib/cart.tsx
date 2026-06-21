@@ -51,6 +51,10 @@ type CartContextValue = {
   count: number;
   subtotal: number;
   withProducts: { product: Product; qty: number; lineTotal: number }[];
+  isOpen: boolean;
+  openCart: () => void;
+  closeCart: () => void;
+  setOpen: (open: boolean) => void;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -59,6 +63,7 @@ const STORAGE_KEY = "carwalhos:cart:v1";
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
 
   // Load from localStorage on mount (client only)
   useEffect(() => {
@@ -91,6 +96,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, { id, qty }];
     });
+    // Auto-open drawer when an item is added — premium-store pattern
+    setIsOpen(true);
   }, []);
 
   const remove = useCallback((id: string) => {
@@ -106,6 +113,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clear = useCallback(() => setItems([]), []);
 
+  const openCart = useCallback(() => setIsOpen(true), []);
+  const closeCart = useCallback(() => setIsOpen(false), []);
+
   const value = useMemo<CartContextValue>(() => {
     const withProducts = items
       .map((i) => {
@@ -118,8 +128,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const subtotal = withProducts.reduce((s, x) => s + x.lineTotal, 0);
     const count = withProducts.reduce((s, x) => s + x.qty, 0);
 
-    return { items, add, remove, setQty, clear, count, subtotal, withProducts };
-  }, [items, add, remove, setQty, clear]);
+    return {
+      items,
+      add,
+      remove,
+      setQty,
+      clear,
+      count,
+      subtotal,
+      withProducts,
+      isOpen,
+      openCart,
+      closeCart,
+      setOpen: setIsOpen,
+    };
+  }, [items, add, remove, setQty, clear, isOpen, openCart, closeCart]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

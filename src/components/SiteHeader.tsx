@@ -11,7 +11,7 @@ const nav = [
 ] as const;
 
 export function SiteHeader() {
-  const { count } = useCart();
+  const { count, openCart } = useCart();
 
   return (
     <header className="absolute inset-x-0 top-0 z-30">
@@ -43,9 +43,10 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link
-            to="/cart"
-            aria-label={`Cart with ${count} items`}
+          <button
+            type="button"
+            onClick={openCart}
+            aria-label={`Open cart, ${count} item${count === 1 ? "" : "s"}`}
             className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-primary/40 text-cream transition-colors hover:bg-primary/10"
           >
             <ShoppingBag className="h-4 w-4" />
@@ -54,7 +55,7 @@ export function SiteHeader() {
                 {count}
               </span>
             )}
-          </Link>
+          </button>
           <Link
             to="/menu"
             className="hidden items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-lg shadow-black/30 transition-transform hover:scale-[1.03] sm:inline-flex"
