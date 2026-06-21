@@ -1,6 +1,20 @@
 import { Link } from "@tanstack/react-router";
 import logoWhite from "@/assets/carwalhos-logo-white.png.asset.json";
 
+const policyLinks: Array<{ to: string; label: string }> = [
+  { to: "/privacy", label: "Privacy Policy" },
+  { to: "/terms", label: "Terms & Conditions" },
+  { to: "/cookies", label: "Cookie Policy" },
+  { to: "/disclaimer", label: "Disclaimer" },
+  { to: "/refund", label: "Refund Policy" },
+  { to: "/returns", label: "Return Policy" },
+  { to: "/cancellation", label: "Cancellation Policy" },
+  { to: "/shipping", label: "Shipping & Delivery" },
+  { to: "/payment", label: "Payment Policy" },
+  { to: "/acceptable-use", label: "Acceptable Use" },
+  { to: "/community", label: "Community Guidelines" },
+];
+
 export function SiteFooter() {
   return (
     <footer className="border-t border-border/60 bg-card/40">
@@ -61,6 +75,24 @@ export function SiteFooter() {
           </ul>
         </div>
       </div>
+
+      <div className="border-t border-border/60">
+        <div className="mx-auto max-w-7xl px-6 py-6">
+          <h4 className="text-xs uppercase tracking-[0.25em] text-primary">
+            Policies
+          </h4>
+          <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
+            {policyLinks.map((l) => (
+              <li key={l.to}>
+                <Link to={l.to} className="hover:text-primary">
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
       <div className="border-t border-border/60 px-6 py-5 text-center text-xs text-muted-foreground">
         © {new Date().getFullYear()} Carwalho&apos;s Cafe · Pallavaram, Chennai
       </div>
