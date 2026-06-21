@@ -29,26 +29,6 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-const featuredMenu = [
-  {
-    name: "Sugarcane Juice",
-    description: "Cold-pressed daily from handpicked cane. One full litre.",
-    price: "₹120",
-    unit: "/ litre",
-  },
-  {
-    name: "Tender Coconut — Pondicherry",
-    description: "Naturally hydrating, straight from the coast.",
-    price: "₹50",
-    unit: "/ piece",
-  },
-  {
-    name: "Tender Coconut — Pollachi",
-    description: "Larger, sweeter Pollachi variety. Pure refreshment.",
-    price: "₹70",
-    unit: "/ piece",
-  },
-];
 
 const valueProps = [
   { icon: Sparkles, title: "Pressed to Order", body: "Every drink made fresh — no concentrates, no shortcuts." },
