@@ -1,9 +1,10 @@
-name = "carwalhos-cafe"
-main = ".output/server/index.mjs"
+name = "carvalhos-cafe"
+
+main = "dist/server/server.js"
+
 compatibility_date = "2025-05-01"
 compatibility_flags = ["nodejs_compat"]
 
-# Serve Vite's static assets (built into .output/public) from the Worker
 [assets]
-directory = ".output/public"
+directory = "dist/client"
 binding = "ASSETS"
