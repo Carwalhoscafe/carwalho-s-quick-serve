@@ -23,9 +23,9 @@ export function SiteFooter() {
           <img
             src={logoWhite.url}
             alt="Carwalho's Cafe"
-            width={200}
-            height={60}
-            className="h-10 w-auto"
+            width={400}
+            height={120}
+            className="h-20 w-auto"
           />
           <p className="mt-4 max-w-xs text-sm text-muted-foreground">
             Fresh sugarcane juice & tender coconut, hand-pressed daily and
@@ -43,8 +43,10 @@ export function SiteFooter() {
             Chennai – 600117
           </p>
           <p className="mt-3 text-muted-foreground">
-            Mon – Fri · 10:00 AM – 2:00 PM<br />
-            5 km delivery radius
+            Monday – Friday<br />
+            <br />
+            Order before 10:00 AM for same-day delivery.<br />
+            Freshly prepared and delivered to your doorstep.
           </p>
         </div>
 

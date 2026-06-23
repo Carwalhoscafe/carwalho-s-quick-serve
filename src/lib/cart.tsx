@@ -9,7 +9,8 @@ import {
 } from "react";
 
 import sugarcaneAsset from "@/assets/product-sugarcane.jpg.asset.json";
-import pondicherryAsset from "@/assets/product-coconut-pondicherry.jpg.asset.json";
+import pondicherrySmallAsset from "@/assets/product-coconut-pondicherry-small.jpg.asset.json";
+import pondicherryLargeAsset from "@/assets/product-coconut-pondicherry-large.jpg.asset.json";
 import pollachiAsset from "@/assets/product-coconut-pollachi.jpg.asset.json";
 
 export type Product = {
@@ -36,7 +37,7 @@ export const PRODUCTS: Product[] = [
     price: 50,
     unit: "per piece",
     description: "Naturally hydrating, straight from the coast.",
-    image: pondicherryAsset.url,
+    image: pondicherrySmallAsset.url,
   },
   {
     id: "coconut-pondicherry-large",
@@ -44,7 +45,7 @@ export const PRODUCTS: Product[] = [
     price: 70,
     unit: "per piece",
     description: "A bigger Pondicherry coconut — more water, more refreshment.",
-    image: pondicherryAsset.url,
+    image: pondicherryLargeAsset.url,
   },
   {
     id: "coconut-pollachi",
