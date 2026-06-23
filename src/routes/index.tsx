@@ -31,10 +31,10 @@ export const Route = createFileRoute("/")({
 
 
 const valueProps = [
-  { icon: Sparkles, title: "Pressed to Order", body: "Every drink made fresh — no concentrates, no shortcuts." },
-  { icon: MapPin, title: "5 km Delivery", body: "Free delivery across Pallavaram and surrounding lanes." },
-  { icon: Clock, title: "Mon – Fri · 10–2", body: "Order before 10 AM for same-day delivery." },
-  { icon: Leaf, title: "100% Natural", body: "Handpicked cane and coconut. Nothing else added." },
+  { icon: Sparkles, title: "Freshly Prepared", body: "Made fresh daily from premium tender coconuts and hand-selected sugarcane." },
+  { icon: MapPin, title: "Event & Office Delivery", body: "Reliable delivery for offices, meetings, schools, events, and community gatherings." },
+  { icon: Clock, title: "Advance Booking Available", body: "Schedule your delivery in advance and receive fresh drinks exactly when needed." },
+  { icon: Leaf, title: "Healthy Hydration", body: "A natural alternative to soft drinks, packed with freshness and goodness." },
 ];
 
 function Home() {
@@ -65,8 +65,7 @@ function Home() {
         />
 
         <div className="relative z-10 mx-auto flex min-h-[100vh] max-w-7xl flex-col justify-end px-6 pb-20 pt-40">
-          <p className="flex items-center gap-3 text-xs uppercase tracking-[0.4em] text-primary">
-            <span className="h-px w-10 bg-primary/60" />
+          <p className="text-xs uppercase tracking-[0.4em] text-primary">
             Crafted Fresh Everyday
           </p>
           <h1
