@@ -1,0 +1,9 @@
+name = "carwalhos-cafe"
+main = ".output/server/index.mjs"
+compatibility_date = "2025-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Serve Vite's static assets (built into .output/public) from the Worker
+[assets]
+directory = ".output/public"
+binding = "ASSETS"
