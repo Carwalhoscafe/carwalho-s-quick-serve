@@ -150,11 +150,11 @@ function Home() {
                   />
                 </div>
                 <div className="flex flex-1 flex-col p-6">
-                  <h3 className="text-lg text-cream">{item.name}</h3>
-                  <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                  <h3 className="min-h-[3.5rem] text-lg leading-tight text-cream">{item.name}</h3>
+                  <p className="mt-2 line-clamp-2 min-h-[2.75rem] text-sm leading-relaxed text-muted-foreground">
                     {item.description}
                   </p>
-                  <div className="mt-6 flex items-end justify-between gap-3 border-t border-border/60 pt-5">
+                  <div className="mt-auto flex items-end justify-between gap-3 border-t border-border/60 pt-5">
                     <div>
                       <span
                         className="text-2xl text-primary"
