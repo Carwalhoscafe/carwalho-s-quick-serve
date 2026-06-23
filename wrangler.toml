@@ -1,4 +1,4 @@
-name = "carvalhos-cafe"
+name = "carwalhos-cafe"
 
 main = "dist/server/server.js"
 
