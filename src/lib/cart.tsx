@@ -9,7 +9,7 @@ import {
 } from "react";
 
 import sugarcaneAsset from "@/assets/product-sugarcane.jpg.asset.json";
-import pondicherrySmallAsset from "@/assets/product-coconut-pondicherry-small.jpg.asset.json";
+import pondicherrySmallAsset from "@/assets/product-tender-coconut-styled.jpg.asset.json";
 import pondicherryLargeAsset from "@/assets/product-coconut-pondicherry-large.jpg.asset.json";
 import pollachiAsset from "@/assets/product-coconut-pollachi.jpg.asset.json";
 
