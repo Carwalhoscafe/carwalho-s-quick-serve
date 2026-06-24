@@ -52,6 +52,14 @@ async function main() {
     await writeFile(dest, buf);
     downloaded++;
     console.log(`  ✓ ${meta.original_filename} (${buf.length} bytes)`);
+
+    // Mirror favicon assets to stable /public paths so they're reachable
+    // from /favicon.svg and /favicon.png on any host.
+    const base = path.basename(f, ".asset.json"); // e.g. "favicon.svg"
+    if (base.startsWith("favicon.")) {
+      await writeFile(path.join(ROOT, "public", base), buf);
+      console.log(`  ✓ mirrored → public/${base}`);
+    }
   }
   console.log(`Assets ready: ${downloaded} downloaded, ${skipped} cached.`);
 }
