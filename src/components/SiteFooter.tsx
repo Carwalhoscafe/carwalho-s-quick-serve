@@ -40,10 +40,10 @@ export function SiteFooter() {
           <p className="mt-3 text-cream/80">
             Alagappa Nagar, Pallava Garden,<br />
             Jamin Pallavaram,<br />
-            Chennai – 600117
+            Chennai - 600117
           </p>
           <p className="mt-3 text-muted-foreground">
-            Monday – Friday<br />
+            Monday - Friday<br />
             <br />
             Order before 10:00 AM for same-day delivery.<br />
             Freshly prepared and delivered to your doorstep.
