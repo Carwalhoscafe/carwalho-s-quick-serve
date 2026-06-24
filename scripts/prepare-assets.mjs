@@ -35,23 +35,31 @@ async function main() {
     if (!meta.asset_id || !meta.original_filename) continue;
     const dir = path.join(OUT, meta.asset_id);
     const dest = path.join(dir, meta.original_filename);
+    let buf;
     if (existsSync(dest)) {
       const s = await stat(dest);
       if (meta.size && s.size === meta.size) {
+        buf = await readFile(dest);
         skipped++;
-        continue;
       }
     }
-    const url = `${ORIGIN}${meta.url}`;
-    const res = await fetch(url);
-    if (!res.ok) {
-      throw new Error(`Failed to fetch ${url}: ${res.status}`);
+    if (!buf) {
+      const url = `${ORIGIN}${meta.url}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`);
+      buf = Buffer.from(await res.arrayBuffer());
+      await mkdir(dir, { recursive: true });
+      await writeFile(dest, buf);
+      downloaded++;
+      console.log(`  ✓ ${meta.original_filename} (${buf.length} bytes)`);
     }
-    const buf = Buffer.from(await res.arrayBuffer());
-    await mkdir(dir, { recursive: true });
-    await writeFile(dest, buf);
-    downloaded++;
-    console.log(`  ✓ ${meta.original_filename} (${buf.length} bytes)`);
+
+    // Mirror favicon assets to stable /public paths so they're reachable
+    // at /favicon.svg and /favicon.png on any host (incl. Cloudflare Workers).
+    const base = path.basename(f, ".asset.json"); // e.g. "favicon.svg"
+    if (base.startsWith("favicon.")) {
+      await writeFile(path.join(ROOT, "public", base), buf);
+    }
   }
   console.log(`Assets ready: ${downloaded} downloaded, ${skipped} cached.`);
 }
