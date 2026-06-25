@@ -14,7 +14,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Hand-pressed sugarcane juice and tender coconut water from Pallavaram, Chennai. Order online for same-day delivery within 5 km, Mon–Fri 10am–2pm.",
+          "Hand-pressed sugarcane juice and tender coconut water from Pallavaram, Chennai. Order online for same-day delivery within 5 km, Mon-Fri 10am-2pm.",
       },
       { property: "og:title", content: "Carwalho's Cafe - Fresh Sugarcane Juice & Tender Coconut" },
       {

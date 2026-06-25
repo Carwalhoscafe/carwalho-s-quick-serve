@@ -41,7 +41,7 @@ function ContactPage() {
           <MapPin className="h-5 w-5 text-primary" />
           <h2 className="mt-4 text-lg text-cream">Visit</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Alagappa Nagar, Pallava Garden, Jamin Pallavaram, Chennai – 600117
+            Alagappa Nagar, Pallava Garden, Jamin Pallavaram, Chennai - 600117
           </p>
         </div>
       </section>
