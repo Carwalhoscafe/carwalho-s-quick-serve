@@ -1,31 +1,46 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Leaf, MapPin, Clock, Sparkles, Minus, Plus } from "lucide-react";
+import { ArrowRight, Leaf, MapPin, Clock, Sparkles, Minus, Plus, ShoppingBag, MapPinned, Truck } from "lucide-react";
 
 import heroAsset from "@/assets/carwalhos-hero.png.asset.json";
+import socialAsset from "@/assets/carwalhos-social.png.asset.json";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PRODUCTS, useCart } from "@/lib/cart";
 
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Carwalho's Cafe - Fresh Sugarcane Juice & Tender Coconut, Delivered" },
-      {
-        name: "description",
-        content:
-          "Hand-pressed sugarcane juice and tender coconut water from Pallavaram, Chennai. Order online for same-day delivery within 5 km, Mon-Fri 10am-2pm.",
-      },
-      { property: "og:title", content: "Carwalho's Cafe - Fresh Sugarcane Juice & Tender Coconut" },
-      {
-        property: "og:description",
-        content:
-          "Fresh sugarcane juice & tender coconut, delivered to your door across Pallavaram.",
-      },
-      { property: "og:image", content: heroAsset.url },
-      { property: "og:type", content: "website" },
-    ],
-  }),
+  head: () => {
+    const siteUrl = "https://carwalhos-juice-delivery.lovable.app";
+    const title = "Sugarcane Juice & Tender Coconut Delivery in Chennai | Carwalho's Cafe";
+    const description = "Order fresh sugarcane juice and tender coconut water online in Pallavaram, Chennai. Hand-pressed daily, same-day delivery (Mon-Fri, 10am-2pm) for homes, offices, and events.";
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:image", content: `${siteUrl}${socialAsset.url}` },
+        { property: "og:url", content: siteUrl },
+        { property: "og:type", content: "website" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: `${siteUrl}${socialAsset.url}` },
+      ],
+      links: [{ rel: "canonical", href: siteUrl }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            url: siteUrl,
+            name: "Carwalho's Cafe",
+            description,
+          }),
+        },
+      ],
+    };
+  },
   component: Home,
 });
 
