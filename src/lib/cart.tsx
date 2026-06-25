@@ -33,7 +33,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: "coconut-pondicherry-small",
-    name: "Tender Coconut — Pondicherry (Regular)",
+    name: "Tender Coconut - Pondicherry (Regular)",
     price: 50,
     unit: "per piece",
     description: "Naturally hydrating, straight from the coast.",
@@ -41,18 +41,18 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: "coconut-pondicherry-large",
-    name: "Tender Coconut — Pondicherry (Large)",
+    name: "Tender Coconut - Pondicherry (Large)",
     price: 70,
     unit: "per piece",
-    description: "A bigger Pondicherry coconut — more water, more refreshment.",
+    description: "A bigger Pondicherry coconut - more water, more refreshment.",
     image: pondicherryLargeAsset.url,
   },
   {
     id: "coconut-pollachi",
-    name: "Tender Coconut — Pollachi",
+    name: "Tender Coconut - Pollachi",
     price: 80,
     unit: "per piece",
-    description: "Larger, sweeter Pollachi variety — naturally rich and creamy.",
+    description: "Larger, sweeter Pollachi variety - naturally rich and creamy.",
     image: pollachiAsset.url,
   },
 ];
@@ -113,7 +113,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, { id, qty }];
     });
-    // Auto-open drawer when an item is added — premium-store pattern
+    // Auto-open drawer when an item is added - premium-store pattern
     setIsOpen(true);
   }, []);
 

@@ -4,7 +4,7 @@ import { PolicyPage } from "@/components/PolicyPage";
 export const Route = createFileRoute("/cookies")({
   head: () => ({
     meta: [
-      { title: "Cookie Policy — Carwalho's Cafe" },
+      { title: "Cookie Policy - Carwalho's Cafe" },
       { name: "description", content: "How carwalhoscafe.in uses cookies and similar technologies." },
     ],
   }),
@@ -27,9 +27,9 @@ function CookiePolicy() {
 
       <h2 className="pt-4 text-2xl text-cream">2. Cookies We Use</h2>
       <ul className="list-disc space-y-2 pl-6">
-        <li><strong>Essential cookies</strong> — required for the cart, checkout and basic site features.</li>
-        <li><strong>Preference cookies</strong> — remember your delivery area and recent choices.</li>
-        <li><strong>Analytics cookies</strong> — help us understand how visitors use the Site so we can improve it.</li>
+        <li><strong>Essential cookies</strong> - required for the cart, checkout and basic site features.</li>
+        <li><strong>Preference cookies</strong> - remember your delivery area and recent choices.</li>
+        <li><strong>Analytics cookies</strong> - help us understand how visitors use the Site so we can improve it.</li>
       </ul>
 
       <h2 className="pt-4 text-2xl text-cream">3. Managing Cookies</h2>

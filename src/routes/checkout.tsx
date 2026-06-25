@@ -6,7 +6,7 @@ import { useCart, MIN_ORDER_VALUE } from "@/lib/cart";
 export const Route = createFileRoute("/checkout")({
   head: () => ({
     meta: [
-      { title: "Checkout — Carwalho's Cafe" },
+      { title: "Checkout - Carwalho's Cafe" },
       { name: "description", content: "Place your sugarcane juice and tender coconut delivery order." },
     ],
   }),

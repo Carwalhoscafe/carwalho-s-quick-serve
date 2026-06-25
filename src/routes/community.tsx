@@ -4,7 +4,7 @@ import { PolicyPage } from "@/components/PolicyPage";
 export const Route = createFileRoute("/community")({
   head: () => ({
     meta: [
-      { title: "Community Guidelines — Carwalho's Cafe" },
+      { title: "Community Guidelines - Carwalho's Cafe" },
       { name: "description", content: "Rules for reviews, feedback and community interactions." },
     ],
   }),

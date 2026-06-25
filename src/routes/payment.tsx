@@ -4,7 +4,7 @@ import { PolicyPage } from "@/components/PolicyPage";
 export const Route = createFileRoute("/payment")({
   head: () => ({
     meta: [
-      { title: "Payment Policy — Carwalho's Cafe" },
+      { title: "Payment Policy - Carwalho's Cafe" },
       { name: "description", content: "Accepted payment methods, billing and currency information." },
     ],
   }),

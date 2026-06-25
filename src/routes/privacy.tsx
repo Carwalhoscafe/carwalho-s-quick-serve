@@ -4,7 +4,7 @@ import { PolicyPage } from "@/components/PolicyPage";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy — Carwalho's Cafe" },
+      { title: "Privacy Policy - Carwalho's Cafe" },
       { name: "description", content: "How Carwalho's Cafe collects, uses and protects your personal information." },
     ],
   }),

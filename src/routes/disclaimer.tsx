@@ -4,7 +4,7 @@ import { PolicyPage } from "@/components/PolicyPage";
 export const Route = createFileRoute("/disclaimer")({
   head: () => ({
     meta: [
-      { title: "Disclaimer — Carwalho's Cafe" },
+      { title: "Disclaimer - Carwalho's Cafe" },
       { name: "description", content: "Important disclaimers regarding products and information on carwalhoscafe.in." },
     ],
   }),
@@ -22,7 +22,7 @@ function DisclaimerPage() {
 
       <h2 className="pt-4 text-2xl text-cream">1. No Medical Advice</h2>
       <p>
-        Our products — sugarcane juice and tender coconut — are food and beverages, not medicine.
+        Our products - sugarcane juice and tender coconut - are food and beverages, not medicine.
         Statements on the Site are not intended to diagnose, treat, cure or prevent any disease.
         If you have a medical condition, allergy or dietary restriction, please consult a qualified
         professional before consuming our products.

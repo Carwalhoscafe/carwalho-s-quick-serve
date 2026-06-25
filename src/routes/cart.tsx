@@ -7,7 +7,7 @@ import { useCart, MIN_ORDER_VALUE, BULK_THRESHOLD } from "@/lib/cart";
 export const Route = createFileRoute("/cart")({
   head: () => ({
     meta: [
-      { title: "Your Cart — Carwalho's Cafe" },
+      { title: "Your Cart - Carwalho's Cafe" },
       { name: "description", content: "Review your sugarcane juice and tender coconut order before checkout." },
     ],
   }),
