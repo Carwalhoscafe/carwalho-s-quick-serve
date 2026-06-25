@@ -76,33 +76,87 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Carwalho's Cafe" },
-      { name: "description", content: "Fresh sugarcane juice & tender coconut, delivered across Pallavaram." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:title", content: "Carwalho's Cafe" },
-      { name: "twitter:title", content: "Carwalho's Cafe" },
-      { property: "og:description", content: "Fresh sugarcane juice & tender coconut, delivered across Pallavaram." },
-      { name: "twitter:description", content: "Fresh sugarcane juice & tender coconut, delivered across Pallavaram." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2be0713e-7855-4828-b645-2e4b3eea69a4" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2be0713e-7855-4828-b645-2e4b3eea69a4" },
-    ],
-    links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
-      { rel: "apple-touch-icon", href: "/favicon.png" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Pinyon+Script&family=Work+Sans:wght@300;400;500;600&display=swap",
-      },
-    ],
-  }),
+  head: () => {
+    const siteUrl = "https://carwalhos-juice-delivery.lovable.app";
+    const socialImage = `${siteUrl}/__l5e/assets-v1/1dc5ef54-be19-4f99-8b7d-bb86072c0a97/carwalhos-social.png`;
+    const title = "Carwalho's Cafe - Fresh Sugarcane Juice & Tender Coconut Delivery in Chennai";
+    const description = "Order fresh sugarcane juice and tender coconut water online in Pallavaram, Chennai. Hand-pressed daily, same-day delivery for homes, offices, and events.";
+    return {
+      meta: [
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { title },
+        { name: "description", content: description },
+        { name: "keywords", content: "sugarcane juice, tender coconut, fresh juice delivery, sugarcane juice Chennai, tender coconut Chennai, Pallavaram juice delivery, cane juice, coconut water delivery, healthy drinks Chennai, Carwalho's Cafe" },
+        { name: "robots", content: "index, follow, max-image-preview:large" },
+        { name: "author", content: "Carwalho's Cafe" },
+        { name: "theme-color", content: "#0a1a14" },
+        { property: "og:type", content: "website" },
+        { property: "og:site_name", content: "Carwalho's Cafe" },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:image", content: socialImage },
+        { property: "og:image:width", content: "1920" },
+        { property: "og:image:height", content: "1080" },
+        { property: "og:image:alt", content: "Carwalho's Cafe - Fresh Sugarcane Juice & Tender Coconut" },
+        { property: "og:url", content: siteUrl },
+        { property: "og:locale", content: "en_IN" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: socialImage },
+        { name: "twitter:image:alt", content: "Carwalho's Cafe - Fresh Sugarcane Juice & Tender Coconut" },
+        { name: "geo.region", content: "IN-TN" },
+        { name: "geo.placename", content: "Pallavaram, Chennai" },
+      ],
+      links: [
+        { rel: "stylesheet", href: appCss },
+        { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+        { rel: "apple-touch-icon", href: "/favicon.png" },
+        { rel: "preconnect", href: "https://fonts.googleapis.com" },
+        { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+        {
+          rel: "stylesheet",
+          href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Pinyon+Script&family=Work+Sans:wght@300;400;500;600&display=swap",
+        },
+      ],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "LocalBusiness",
+            "@id": `${siteUrl}/#business`,
+            name: "Carwalho's Cafe",
+            description,
+            url: siteUrl,
+            image: socialImage,
+            logo: socialImage,
+            telephone: "+91-9342623521",
+            email: "support@carwalhoscafe.in",
+            priceRange: "₹₹",
+            servesCuisine: ["Sugarcane Juice", "Tender Coconut Water", "Fresh Juices"],
+            address: {
+              "@type": "PostalAddress",
+              addressLocality: "Pallavaram",
+              addressRegion: "Tamil Nadu",
+              postalCode: "600117",
+              addressCountry: "IN",
+            },
+            areaServed: { "@type": "City", name: "Chennai" },
+            openingHoursSpecification: [
+              {
+                "@type": "OpeningHoursSpecification",
+                dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                opens: "10:00",
+                closes: "14:00",
+              },
+            ],
+          }),
+        },
+      ],
+    };
+  },
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
