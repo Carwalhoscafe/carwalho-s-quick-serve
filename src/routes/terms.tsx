@@ -4,7 +4,7 @@ import { PolicyPage } from "@/components/PolicyPage";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms & Conditions — Carwalho's Cafe" },
+      { title: "Terms & Conditions - Carwalho's Cafe" },
       { name: "description", content: "The terms and conditions that govern your use of carwalhoscafe.in and our services." },
     ],
   }),
@@ -51,7 +51,7 @@ function TermsPage() {
 
       <h2 className="pt-4 text-2xl text-cream">6. Intellectual Property</h2>
       <p>
-        All content on the Site — including the Carwalho&apos;s Cafe name, logo, photographs and text —
+        All content on the Site - including the Carwalho&apos;s Cafe name, logo, photographs and text -
         is owned by us and protected by Indian and international intellectual property laws. You may not
         copy, reproduce or use it without our written permission.
       </p>

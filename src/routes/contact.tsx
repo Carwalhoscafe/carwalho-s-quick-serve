@@ -6,9 +6,9 @@ import { Phone, Mail, MapPin } from "lucide-react";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact & Feedback — Carwalho's Cafe" },
+      { title: "Contact & Feedback - Carwalho's Cafe" },
       { name: "description", content: "Reach Carwalho's Cafe for bulk orders, feedback, or to find the shop in Pallavaram, Chennai." },
-      { property: "og:title", content: "Contact — Carwalho's Cafe" },
+      { property: "og:title", content: "Contact - Carwalho's Cafe" },
       { property: "og:description", content: "Get in touch with Carwalho's Cafe, Pallavaram." },
     ],
   }),

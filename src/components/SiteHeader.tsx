@@ -17,7 +17,7 @@ export function SiteHeader() {
   return (
     <header className="absolute inset-x-0 top-0 z-30">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-        <Link to="/" className="flex items-center" aria-label="Carwalho's Cafe — Home">
+        <Link to="/" className="flex items-center" aria-label="Carwalho's Cafe - Home">
           <img
             src={logoWhite.url}
             alt="Carwalho's Cafe"

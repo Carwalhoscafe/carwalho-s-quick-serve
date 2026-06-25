@@ -4,7 +4,7 @@ import { PolicyPage } from "@/components/PolicyPage";
 export const Route = createFileRoute("/acceptable-use")({
   head: () => ({
     meta: [
-      { title: "Acceptable Use Policy — Carwalho's Cafe" },
+      { title: "Acceptable Use Policy - Carwalho's Cafe" },
       { name: "description", content: "Rules for using carwalhoscafe.in and our services." },
     ],
   }),

@@ -4,7 +4,7 @@ import { PolicyPage } from "@/components/PolicyPage";
 export const Route = createFileRoute("/returns")({
   head: () => ({
     meta: [
-      { title: "Return Policy — Carwalho's Cafe" },
+      { title: "Return Policy - Carwalho's Cafe" },
       { name: "description", content: "Our return policy for fresh, perishable beverages." },
     ],
   }),

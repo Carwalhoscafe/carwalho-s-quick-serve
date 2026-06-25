@@ -7,9 +7,9 @@ import { PRODUCTS, useCart, MIN_ORDER_VALUE } from "@/lib/cart";
 export const Route = createFileRoute("/menu")({
   head: () => ({
     meta: [
-      { title: "Menu — Carwalho's Cafe" },
+      { title: "Menu - Carwalho's Cafe" },
       { name: "description", content: "Fresh sugarcane juice and tender coconut, priced per piece and per litre. Order for delivery in Pallavaram." },
-      { property: "og:title", content: "Menu — Carwalho's Cafe" },
+      { property: "og:title", content: "Menu - Carwalho's Cafe" },
       { property: "og:description", content: "Fresh sugarcane juice and tender coconut, priced per piece and per litre." },
     ],
   }),
@@ -29,7 +29,7 @@ function MenuPage() {
           <p className="text-xs uppercase tracking-[0.35em] text-primary">The Menu</p>
           <h1 className="mt-3 text-5xl text-cream md:text-6xl">Today&apos;s pressings.</h1>
           <p className="mt-4 max-w-xl text-muted-foreground">
-            A small, focused selection — pressed and packed fresh on the morning of your delivery.
+            A small, focused selection - pressed and packed fresh on the morning of your delivery.
             Minimum order ₹{MIN_ORDER_VALUE}. Delivery within 5 km of Pallavaram.
           </p>
         </div>

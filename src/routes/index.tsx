@@ -10,13 +10,13 @@ import { PRODUCTS, useCart } from "@/lib/cart";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Carwalho's Cafe — Fresh Sugarcane Juice & Tender Coconut, Delivered" },
+      { title: "Carwalho's Cafe - Fresh Sugarcane Juice & Tender Coconut, Delivered" },
       {
         name: "description",
         content:
           "Hand-pressed sugarcane juice and tender coconut water from Pallavaram, Chennai. Order online for same-day delivery within 5 km, Mon–Fri 10am–2pm.",
       },
-      { property: "og:title", content: "Carwalho's Cafe — Fresh Sugarcane Juice & Tender Coconut" },
+      { property: "og:title", content: "Carwalho's Cafe - Fresh Sugarcane Juice & Tender Coconut" },
       {
         property: "og:description",
         content:
@@ -214,7 +214,7 @@ function Home() {
           <ol className="mt-14 grid gap-10 md:grid-cols-3">
             {[
               { n: "01", t: "Pick your drinks", d: "Browse the small, focused menu and add to your cart." },
-              { n: "02", t: "Drop a pin", d: "Share your address — we check you're inside our 5 km zone." },
+              { n: "02", t: "Drop a pin", d: "Share your address - we check you're inside our 5 km zone." },
               { n: "03", t: "We deliver fresh", d: "Pressed and packed the morning of your delivery slot." },
             ].map((s) => (
               <li key={s.n} className="border-t border-primary/40 pt-6">
@@ -243,7 +243,7 @@ function Home() {
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                 For large orders or special timings outside our regular delivery window,
-                give us a call — we&apos;ll sort it out personally.
+                give us a call - we&apos;ll sort it out personally.
               </p>
             </div>
             <a

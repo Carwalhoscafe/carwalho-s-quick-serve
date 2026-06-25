@@ -4,7 +4,7 @@ import { PolicyPage } from "@/components/PolicyPage";
 export const Route = createFileRoute("/shipping")({
   head: () => ({
     meta: [
-      { title: "Shipping & Delivery Policy — Carwalho's Cafe" },
+      { title: "Shipping & Delivery Policy - Carwalho's Cafe" },
       { name: "description", content: "Delivery area, timings and conditions for Carwalho's Cafe orders." },
     ],
   }),

@@ -5,9 +5,9 @@ import { SiteFooter } from "@/components/SiteFooter";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "Our Story — Carwalho's Cafe" },
+      { title: "Our Story - Carwalho's Cafe" },
       { name: "description", content: "A small, single-location shop in Pallavaram pressing sugarcane and cracking tender coconuts the old-fashioned way." },
-      { property: "og:title", content: "Our Story — Carwalho's Cafe" },
+      { property: "og:title", content: "Our Story - Carwalho's Cafe" },
       { property: "og:description", content: "A small, single-location shop in Pallavaram." },
     ],
   }),
@@ -27,7 +27,7 @@ function AboutPage() {
 
       <article className="mx-auto max-w-3xl space-y-6 px-6 py-16 text-lg leading-relaxed text-cream/90">
         <p>
-          Carwalho&apos;s Cafe is a single counter in Alagappa Nagar, Pallavaram —
+          Carwalho&apos;s Cafe is a single counter in Alagappa Nagar, Pallavaram -
           a steel kettle, a wooden press, and a chalkboard menu in gold script.
         </p>
         <p>
