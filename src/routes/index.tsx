@@ -219,33 +219,107 @@ function Home() {
       </section>
 
       {/* ── Section 4 · How it works ────────────────────────────────── */}
-      <section className="border-t border-border/60 bg-card/30">
-        <div className="mx-auto max-w-7xl px-6 py-24">
-          <p className="text-xs uppercase tracking-[0.35em] text-primary">How it Works</p>
-          <h2 className="mt-3 max-w-2xl text-4xl text-cream md:text-5xl">
-            Three steps to a fresh-pressed delivery.
-          </h2>
+      <section className="relative overflow-hidden border-t border-border/60 bg-gradient-to-b from-card/40 via-background to-card/30">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute bottom-0 right-0 h-[320px] w-[320px] translate-x-1/3 translate-y-1/3 rounded-full bg-secondary/20 blur-3xl"
+        />
 
-          <ol className="mt-14 grid gap-10 md:grid-cols-3">
+        <div className="relative mx-auto max-w-7xl px-6 py-28">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-xs uppercase tracking-[0.4em] text-primary">How it Works</p>
+            <h2
+              className="mt-4 text-4xl leading-[1.1] text-cream md:text-6xl"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              Three sips. <span className="italic text-primary">One fresh</span> delivery.
+            </h2>
+            <p className="mx-auto mt-5 max-w-lg text-sm leading-relaxed text-muted-foreground md:text-base">
+              From our press to your doorstep in the same morning. No preservatives, no waiting around.
+            </p>
+          </div>
+
+          <ol className="relative mt-20 grid gap-8 md:grid-cols-3 md:gap-6">
+            {/* Connecting dotted line on desktop */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute left-[16.66%] right-[16.66%] top-12 hidden h-px md:block"
+              style={{
+                backgroundImage:
+                  "linear-gradient(to right, hsl(var(--primary) / 0.5) 50%, transparent 0%)",
+                backgroundSize: "10px 1px",
+                backgroundRepeat: "repeat-x",
+              }}
+            />
+
             {[
-              { n: "01", t: "Pick your drinks", d: "Browse the small, focused menu and add to your cart." },
-              { n: "02", t: "Drop a pin", d: "Share your address - we check you're inside our 5 km zone." },
-              { n: "03", t: "We deliver fresh", d: "Pressed and packed the morning of your delivery slot." },
-            ].map((s) => (
-              <li key={s.n} className="border-t border-primary/40 pt-6">
-                <span
-                  className="block text-5xl text-primary/80"
-                  style={{ fontFamily: "var(--font-display)" }}
-                >
-                  {s.n}
-                </span>
-                <h3 className="mt-4 text-xl text-cream">{s.t}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.d}</p>
+              {
+                n: "01",
+                icon: ShoppingBag,
+                t: "Pick your drinks",
+                d: "Browse our focused menu of sugarcane juice and tender coconut. Add what you love to the cart.",
+              },
+              {
+                n: "02",
+                icon: MapPinned,
+                t: "Drop a pin",
+                d: "Share your address - we instantly check you're inside our 5 km delivery zone in Pallavaram.",
+              },
+              {
+                n: "03",
+                icon: Truck,
+                t: "We deliver fresh",
+                d: "Pressed, packed, and dispatched the same morning of your chosen delivery slot.",
+              },
+            ].map(({ n, icon: Icon, t, d }) => (
+              <li key={n} className="group relative">
+                <div className="relative flex h-full flex-col items-center rounded-3xl border border-border/70 bg-card/70 p-8 text-center backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-2xl hover:shadow-primary/10">
+                  {/* Step number badge */}
+                  <div className="absolute -top-6 left-1/2 -translate-x-1/2">
+                    <div className="relative">
+                      <div className="absolute inset-0 rounded-full bg-primary/30 blur-md transition-opacity group-hover:opacity-100" />
+                      <span
+                        className="relative inline-flex h-12 w-12 items-center justify-center rounded-full border border-primary/60 bg-background text-sm font-semibold tracking-widest text-primary"
+                        style={{ fontFamily: "var(--font-display)" }}
+                      >
+                        {n}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Icon
+                    className="mt-6 h-10 w-10 text-primary transition-transform duration-300 group-hover:scale-110"
+                    strokeWidth={1.25}
+                  />
+
+                  <h3
+                    className="mt-6 text-2xl text-cream"
+                    style={{ fontFamily: "var(--font-display)" }}
+                  >
+                    {t}
+                  </h3>
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{d}</p>
+                </div>
               </li>
             ))}
           </ol>
+
+          <div className="mt-16 flex justify-center">
+            <Link
+              to="/menu"
+              className="group inline-flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground shadow-xl shadow-primary/20 transition-all hover:scale-[1.03] hover:shadow-primary/40"
+            >
+              Start your order
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </div>
         </div>
       </section>
+
 
       {/* ── Section 5 · Bulk CTA ────────────────────────────────────── */}
       <section className="mx-auto max-w-7xl px-6 py-24">
