@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /auth
+Disallow: /account
+Disallow: /checkout
+
+Sitemap: https://carwalhoscafe.in/sitemap.xml
