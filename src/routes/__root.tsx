@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -14,6 +15,17 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CartProvider } from "../lib/cart";
 import { CartDrawer } from "../components/CartDrawer";
+import { supabase } from "@/integrations/supabase/client";
+
+const SITE_URL = "https://carwalhoscafe.in";
+const GA_ID = "G-1DW57ZD8K3";
+
+declare global {
+  interface Window {
+    dataLayer: unknown[];
+    gtag: (...args: unknown[]) => void;
+  }
+}
 
 function NotFoundComponent() {
   return (
@@ -77,8 +89,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => {
-    const siteUrl = "https://carwalhos-juice-delivery.lovable.app";
-    const socialImage = `${siteUrl}/__l5e/assets-v1/1dc5ef54-be19-4f99-8b7d-bb86072c0a97/carwalhos-social.png`;
+    const socialImage = `${SITE_URL}/__l5e/assets-v1/1dc5ef54-be19-4f99-8b7d-bb86072c0a97/carwalhos-social.png`;
     const title = "Carwalho's Cafe - Fresh Sugarcane Juice & Tender Coconut Delivery in Chennai";
     const description = "Order fresh sugarcane juice and tender coconut water online in Pallavaram, Chennai. Hand-pressed daily, same-day delivery for homes, offices, and events.";
     return {
@@ -99,7 +110,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { property: "og:image:width", content: "1920" },
         { property: "og:image:height", content: "1080" },
         { property: "og:image:alt", content: "Carwalho's Cafe - Fresh Sugarcane Juice & Tender Coconut" },
-        { property: "og:url", content: siteUrl },
+        { property: "og:url", content: SITE_URL },
         { property: "og:locale", content: "en_IN" },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
@@ -108,42 +119,41 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { name: "twitter:image:alt", content: "Carwalho's Cafe - Fresh Sugarcane Juice & Tender Coconut" },
         { name: "geo.region", content: "IN-TN" },
         { name: "geo.placename", content: "Pallavaram, Chennai" },
-        { title: "Carwalho's Café" },
-        { property: "og:title", content: "Carwalho's Café" },
-        { name: "twitter:title", content: "Carwalho's Café" },
-        { name: "description", content: "Experience farm-fresh refreshment with naturally sweet sugarcane juice and handpicked tender coconuts. Freshly prepared, carefully packed, and delivered across" },
-        { property: "og:description", content: "Experience farm-fresh refreshment with naturally sweet sugarcane juice and handpicked tender coconuts. Freshly prepared, carefully packed, and delivered across" },
-        { name: "twitter:description", content: "Experience farm-fresh refreshment with naturally sweet sugarcane juice and handpicked tender coconuts. Freshly prepared, carefully packed, and delivered across" },
-        { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/jut61odj8cgkqhvyKv4uhnkdZ6D3/social-images/social-1782435983407-Frame_15.webp" },
-        { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/jut61odj8cgkqhvyKv4uhnkdZ6D3/social-images/social-1782435983407-Frame_15.webp" },
       ],
       links: [
         { rel: "stylesheet", href: appCss },
         { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
         { rel: "apple-touch-icon", href: "/favicon.png" },
+        { rel: "canonical", href: SITE_URL },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+        { rel: "preconnect", href: "https://www.googletagmanager.com" },
         {
           rel: "stylesheet",
           href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Pinyon+Script&family=Work+Sans:wght@300;400;500;600&display=swap",
         },
       ],
       scripts: [
+        { src: `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`, async: true },
+        {
+          children: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}window.gtag=gtag;gtag('js',new Date());gtag('config','${GA_ID}',{send_page_view:false});`,
+        },
         {
           type: "application/ld+json",
           children: JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "LocalBusiness",
-            "@id": `${siteUrl}/#business`,
+            "@type": ["LocalBusiness", "Restaurant"],
+            "@id": `${SITE_URL}/#business`,
             name: "Carwalho's Cafe",
             description,
-            url: siteUrl,
+            url: SITE_URL,
             image: socialImage,
             logo: socialImage,
             telephone: "+91-9342623521",
             email: "support@carwalhoscafe.in",
             priceRange: "₹₹",
             servesCuisine: ["Sugarcane Juice", "Tender Coconut Water", "Fresh Juices"],
+            menu: `${SITE_URL}/menu`,
             address: {
               "@type": "PostalAddress",
               addressLocality: "Pallavaram",
@@ -185,12 +195,37 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function Analytics() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname + s.location.search });
+  const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.gtag !== "function") return;
+    window.gtag("event", "page_view", {
+      page_path: pathname,
+      page_location: window.location.href,
+      page_title: document.title,
+    });
+  }, [pathname]);
+
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      router.invalidate();
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [router]);
+
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
       <CartProvider>
+        <Analytics />
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         <CartDrawer />
