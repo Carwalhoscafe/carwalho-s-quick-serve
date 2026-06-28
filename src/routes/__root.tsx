@@ -196,7 +196,7 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function Analytics() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname + s.location.search });
+  const pathname = useRouterState({ select: (s) => s.location.href });
   const router = useRouter();
 
   useEffect(() => {
