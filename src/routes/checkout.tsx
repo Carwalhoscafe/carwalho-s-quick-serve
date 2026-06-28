@@ -212,7 +212,8 @@ function CheckoutPage() {
 
                 {err && <p className="text-sm text-destructive">{err}</p>}
 
-                <button disabled={submitting}
+                <button
+                  disabled={submitting || !picked || tooFar}
                   className="w-full rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50">
                   {submitting ? "Placing order..." : `Place order - ₹${subtotal}`}
                 </button>
