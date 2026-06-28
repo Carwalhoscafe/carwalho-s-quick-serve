@@ -1,8 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { ShoppingBag, User as UserIcon } from "lucide-react";
+import { ShoppingBag, User as UserIcon, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart";
 import { supabase } from "@/integrations/supabase/client";
+import { amIAdmin } from "@/lib/admin.functions";
 import logoWhite from "@/assets/carwalhos-logo-white.png.asset.json";
 
 const nav = [
@@ -16,9 +17,24 @@ const nav = [
 export function SiteHeader() {
   const { count, openCart } = useCart();
   const [signedIn, setSignedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSignedIn(!!s));
+    async function refresh(hasSession: boolean) {
+      setSignedIn(hasSession);
+      if (hasSession) {
+        try {
+          const { isAdmin: a } = await amIAdmin();
+          setIsAdmin(!!a);
+        } catch {
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAdmin(false);
+      }
+    }
+    supabase.auth.getSession().then(({ data }) => refresh(!!data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => refresh(!!s));
     return () => sub.subscription.unsubscribe();
   }, []);
 
@@ -52,6 +68,15 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-3">
+          {isAdmin && (
+            <Link
+              to="/admin/orders"
+              aria-label="Admin orders"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-primary/40 text-primary transition-colors hover:bg-primary/10"
+            >
+              <ShieldCheck className="h-4 w-4" />
+            </Link>
+          )}
           <Link
             to={signedIn ? "/account/orders" : "/auth"}
             aria-label={signedIn ? "My account" : "Sign in"}

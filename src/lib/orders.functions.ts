@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { distanceFromShopKm, DELIVERY_RADIUS_KM } from "./geo";
 
 const itemSchema = z.object({
   product_id: z.string(),
@@ -16,6 +17,8 @@ const submitInput = z.object({
   customer_email: z.string().email().optional().nullable(),
   order_type: z.enum(["delivery", "pickup"]).default("delivery"),
   delivery_address: z.string().max(500).optional().nullable(),
+  delivery_lat: z.number().min(-90).max(90).optional().nullable(),
+  delivery_lng: z.number().min(-180).max(180).optional().nullable(),
   notes: z.string().max(500).optional().nullable(),
   payment_method: z.enum(["razorpay", "cod"]),
   items: z.array(itemSchema).min(1),
@@ -38,6 +41,21 @@ export const submitOrder = createServerFn({ method: "POST" })
     const total = subtotal + (data.delivery_fee ?? 0);
     const number = orderNumber();
 
+    // Server-side delivery radius gate (authoritative).
+    let distanceKm: number | null = null;
+    if (data.order_type === "delivery") {
+      if (data.delivery_lat == null || data.delivery_lng == null) {
+        throw new Error("Please choose your delivery address from the suggestions.");
+      }
+      if (!data.delivery_address) throw new Error("Delivery address is required.");
+      distanceKm = distanceFromShopKm(data.delivery_lat, data.delivery_lng);
+      if (distanceKm > DELIVERY_RADIUS_KM) {
+        throw new Error(
+          `Sorry, your address is ${distanceKm.toFixed(1)} km away. We only deliver within ${DELIVERY_RADIUS_KM} km of Pallavaram.`,
+        );
+      }
+    }
+
     const { data: order, error: oErr } = await supabase
       .from("orders")
       .insert({
@@ -48,6 +66,9 @@ export const submitOrder = createServerFn({ method: "POST" })
         customer_email: data.customer_email ?? (claims?.email as string | undefined) ?? null,
         order_type: data.order_type,
         delivery_address: data.delivery_address ?? null,
+        delivery_lat: data.delivery_lat ?? null,
+        delivery_lng: data.delivery_lng ?? null,
+        delivery_distance_km: distanceKm,
         notes: data.notes ?? null,
         payment_method: data.payment_method,
         payment_status: data.payment_method === "cod" ? "pending" : "pending",

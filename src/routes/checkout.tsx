@@ -3,9 +3,11 @@ import { useEffect, useState } from "react";
 
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { AddressAutocomplete, type SelectedAddress } from "@/components/AddressAutocomplete";
 import { useCart, MIN_ORDER_VALUE } from "@/lib/cart";
 import { supabase } from "@/integrations/supabase/client";
 import { submitOrder } from "@/lib/orders.functions";
+import { distanceFromShopKm, DELIVERY_RADIUS_KM } from "@/lib/geo";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -32,9 +34,13 @@ function CheckoutPage() {
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
+  const [addressDetails, setAddressDetails] = useState("");
+  const [picked, setPicked] = useState<SelectedAddress | null>(null);
   const [notes, setNotes] = useState("");
   const [payment, setPayment] = useState<"cod" | "razorpay">("cod");
+
+  const distanceKm = picked ? distanceFromShopKm(picked.lat, picked.lng) : null;
+  const tooFar = distanceKm != null && distanceKm > DELIVERY_RADIUS_KM;
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -49,6 +55,18 @@ function CheckoutPage() {
   async function placeOrder(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
+    if (!picked) {
+      setErr("Please choose your delivery address from the suggestions.");
+      return;
+    }
+    if (tooFar) {
+      setErr(`Sorry, you're ${distanceKm!.toFixed(1)} km away. We only deliver within ${DELIVERY_RADIUS_KM} km of Pallavaram.`);
+      return;
+    }
+    const fullAddress = addressDetails
+      ? `${addressDetails} - ${picked.formattedAddress}`
+      : picked.formattedAddress;
+
     setSubmitting(true); setErr(null);
     try {
       const res = await submitOrder({
@@ -57,7 +75,9 @@ function CheckoutPage() {
           customer_phone: phone,
           customer_email: user.email ?? null,
           order_type: "delivery",
-          delivery_address: address,
+          delivery_address: fullAddress,
+          delivery_lat: picked.lat,
+          delivery_lng: picked.lng,
           notes: notes || null,
           payment_method: payment,
           delivery_fee: 0,
@@ -156,9 +176,26 @@ function CheckoutPage() {
                   <input required value={phone} onChange={e=>setPhone(e.target.value)} placeholder="Phone (+91...)"
                     type="tel" className="rounded-lg border border-border/70 bg-background px-4 py-3 text-sm text-cream" />
                 </div>
-                <textarea required value={address} onChange={e=>setAddress(e.target.value)} rows={3}
-                  placeholder="Delivery address (house no, street, area, pincode)"
-                  className="w-full rounded-lg border border-border/70 bg-background px-4 py-3 text-sm text-cream" />
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-widest text-muted-foreground">Delivery address</label>
+                  <AddressAutocomplete onSelect={setPicked} onClear={() => setPicked(null)} />
+                  {picked && !tooFar && (
+                    <p className="text-xs text-emerald-400">
+                      ✓ {picked.formattedAddress} ({distanceKm!.toFixed(1)} km from shop)
+                    </p>
+                  )}
+                  {picked && tooFar && (
+                    <p className="text-xs text-destructive">
+                      Sorry, you're {distanceKm!.toFixed(1)} km away. We only deliver within {DELIVERY_RADIUS_KM} km of Pallavaram.
+                    </p>
+                  )}
+                  <input
+                    value={addressDetails}
+                    onChange={(e) => setAddressDetails(e.target.value)}
+                    placeholder="Flat / floor / landmark (optional)"
+                    className="w-full rounded-lg border border-border/70 bg-background px-4 py-3 text-sm text-cream"
+                  />
+                </div>
                 <textarea value={notes} onChange={e=>setNotes(e.target.value)} rows={2}
                   placeholder="Notes (optional)"
                   className="w-full rounded-lg border border-border/70 bg-background px-4 py-3 text-sm text-cream" />
@@ -175,7 +212,8 @@ function CheckoutPage() {
 
                 {err && <p className="text-sm text-destructive">{err}</p>}
 
-                <button disabled={submitting}
+                <button
+                  disabled={submitting || !picked || tooFar}
                   className="w-full rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50">
                   {submitting ? "Placing order..." : `Place order - ₹${subtotal}`}
                 </button>
