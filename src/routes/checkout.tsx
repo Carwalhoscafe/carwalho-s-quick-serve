@@ -176,9 +176,26 @@ function CheckoutPage() {
                   <input required value={phone} onChange={e=>setPhone(e.target.value)} placeholder="Phone (+91...)"
                     type="tel" className="rounded-lg border border-border/70 bg-background px-4 py-3 text-sm text-cream" />
                 </div>
-                <textarea required value={address} onChange={e=>setAddress(e.target.value)} rows={3}
-                  placeholder="Delivery address (house no, street, area, pincode)"
-                  className="w-full rounded-lg border border-border/70 bg-background px-4 py-3 text-sm text-cream" />
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-widest text-muted-foreground">Delivery address</label>
+                  <AddressAutocomplete onSelect={setPicked} onClear={() => setPicked(null)} />
+                  {picked && !tooFar && (
+                    <p className="text-xs text-emerald-400">
+                      ✓ {picked.formattedAddress} ({distanceKm!.toFixed(1)} km from shop)
+                    </p>
+                  )}
+                  {picked && tooFar && (
+                    <p className="text-xs text-destructive">
+                      Sorry, you're {distanceKm!.toFixed(1)} km away. We only deliver within {DELIVERY_RADIUS_KM} km of Pallavaram.
+                    </p>
+                  )}
+                  <input
+                    value={addressDetails}
+                    onChange={(e) => setAddressDetails(e.target.value)}
+                    placeholder="Flat / floor / landmark (optional)"
+                    className="w-full rounded-lg border border-border/70 bg-background px-4 py-3 text-sm text-cream"
+                  />
+                </div>
                 <textarea value={notes} onChange={e=>setNotes(e.target.value)} rows={2}
                   placeholder="Notes (optional)"
                   className="w-full rounded-lg border border-border/70 bg-background px-4 py-3 text-sm text-cream" />
