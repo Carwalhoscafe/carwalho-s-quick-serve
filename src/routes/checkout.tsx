@@ -3,9 +3,11 @@ import { useEffect, useState } from "react";
 
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { AddressAutocomplete, type SelectedAddress } from "@/components/AddressAutocomplete";
 import { useCart, MIN_ORDER_VALUE } from "@/lib/cart";
 import { supabase } from "@/integrations/supabase/client";
 import { submitOrder } from "@/lib/orders.functions";
+import { distanceFromShopKm, DELIVERY_RADIUS_KM } from "@/lib/geo";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -32,9 +34,13 @@ function CheckoutPage() {
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
+  const [addressDetails, setAddressDetails] = useState("");
+  const [picked, setPicked] = useState<SelectedAddress | null>(null);
   const [notes, setNotes] = useState("");
   const [payment, setPayment] = useState<"cod" | "razorpay">("cod");
+
+  const distanceKm = picked ? distanceFromShopKm(picked.lat, picked.lng) : null;
+  const tooFar = distanceKm != null && distanceKm > DELIVERY_RADIUS_KM;
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
