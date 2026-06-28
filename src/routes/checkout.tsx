@@ -55,6 +55,18 @@ function CheckoutPage() {
   async function placeOrder(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
+    if (!picked) {
+      setErr("Please choose your delivery address from the suggestions.");
+      return;
+    }
+    if (tooFar) {
+      setErr(`Sorry, you're ${distanceKm!.toFixed(1)} km away. We only deliver within ${DELIVERY_RADIUS_KM} km of Pallavaram.`);
+      return;
+    }
+    const fullAddress = addressDetails
+      ? `${addressDetails} - ${picked.formattedAddress}`
+      : picked.formattedAddress;
+
     setSubmitting(true); setErr(null);
     try {
       const res = await submitOrder({
@@ -63,7 +75,9 @@ function CheckoutPage() {
           customer_phone: phone,
           customer_email: user.email ?? null,
           order_type: "delivery",
-          delivery_address: address,
+          delivery_address: fullAddress,
+          delivery_lat: picked.lat,
+          delivery_lng: picked.lng,
           notes: notes || null,
           payment_method: payment,
           delivery_fee: 0,
