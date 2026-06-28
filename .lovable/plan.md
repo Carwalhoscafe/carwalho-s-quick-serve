@@ -1,97 +1,82 @@
-# Additive Integrations Plan (v3 - final)
+## Status of last session
 
-Browse-public, login-at-checkout, plus the integrations from v2. UI changes are scoped strictly to: a sign-in page, the cart-preserving auth redirect, and an account/orders page. Everything else (hero, menu cards, drawer, footer, policies) stays untouched.
+The 5km radius check was **never implemented** - it only exists as marketing copy on `about`, `menu`, `index`, `shipping`, and `terms`. Checkout takes a free-text textarea; `submitOrder` accepts any string. Nothing to "finish" - it's a clean build.
 
----
-
-## 1. SEO (unchanged from v2)
-
-- `__root.tsx`: switch `BASE_URL` to `https://carwalhoscafe.in`, remove the duplicated short og:title/description/image block that overrides keyword-rich tags, keep LocalBusiness JSON-LD, add Restaurant JSON-LD (`servesCuisine`, `priceRange`, `hasMenu`).
-- Per-route `head()` on index, menu, about, contact, reviews, cart, checkout, account, and all 11 policy routes: unique title, description, og:*, self-canonical. `menu.tsx` also gets a `Menu` JSON-LD with the 4 products + prices.
-- New `src/routes/sitemap[.]xml.ts` (server route) listing all public URLs.
-- New `public/robots.txt` with `Sitemap: https://carwalhoscafe.in/sitemap.xml`.
-
-## 2. GA4 (G-1DW57ZD8K3)
-
-- gtag loader in `__root.tsx` head.
-- Init explicitly disables auto pageview to avoid double-counting:
-  ```js
-  gtag('config', 'G-1DW57ZD8K3', { send_page_view: false });
-  ```
-- `GAListener` mounted in root subscribes to TanStack Router events and fires `gtag('event','page_view',{ page_path, page_location, page_title })` on every SPA navigation (including the first).
-
-## 3. Lovable Cloud + Schema
-
-Enable Lovable Cloud. Migration creates:
-
-- `public.orders` - `id uuid pk`, `order_number text unique`, `user_id uuid` (nullable at schema level for safety, but always populated in practice since checkout requires login), `customer_name`, `customer_phone`, `customer_email`, `order_type`, `delivery_address`, `notes`, `payment_method`, `payment_status`, `order_status` default `confirmed`, `subtotal`, `delivery_fee`, `total`, `created_at`.
-- `public.order_items` - `id`, `order_id fk`, `product_id`, `product_name`, `unit_price`, `qty`, `line_total`.
-- GRANTs to `authenticated` and `service_role`. RLS: user can `SELECT` their own orders and items; INSERTs go via service-role server fn.
-
-## 4. Auth (Supabase) - login at checkout only
-
-Methods enabled: **Email (magic link - one-tap, no password reset UI to build), Phone OTP, Google OAuth** (via Lovable broker, redirect_uri = `window.location.origin/auth/callback`). `configure_social_auth` called in the same turn Google is wired up.
-
-UI changes (the only new UI in this plan):
-
-- **`/auth`** - simple branded sign-in page with three tabs: Email magic link, Phone OTP, Google. Public route, SSR off. Accepts `?redirect=` search param.
-- **`/auth/callback`** - public route that waits for `supabase.auth.getSession()`, then `navigate({ to: redirect ?? '/checkout' })`.
-- **Cart preservation** - cart is already in `localStorage` via `CartProvider`, so it survives the OAuth round-trip automatically. No code change needed for cart persistence; just verified.
-- **Checkout gating** - `checkout.tsx` stays a public route (so cart contents render for logged-out users too), but the "Place Order" button checks `supabase.auth.getUser()` on click; if no user, `navigate({ to: '/auth', search: { redirect: '/checkout' } })`. No `_authenticated` move for `/checkout` - that would blank the cart preview for guests.
-- **Header** - small "Sign in" / "My account" link added to `SiteHeader.tsx`. Existing layout, just one extra link. (If you'd rather skip this, say so and I'll leave the header untouched - login still works from the checkout button.)
-
-## 5. Order Submission
-
-- `src/lib/orders.functions.ts` `submitOrder` with `.middleware([requireSupabaseAuth])`:
-  1. Server-side recompute of subtotal/fees/total against `PRODUCTS`.
-  2. Insert `orders` + `order_items` via `supabaseAdmin` (lazy-imported inside handler).
-  3. Generate `order_number` (`CC-YYYYMMDD-####`).
-  4. Fire `sendOrderEmails(order)` and `appendOrderToSheets(order)` - both in try/catch, never block the order.
-  5. Return `{ orderNumber, total }`.
-- `checkout.tsx` "Place Order" button calls it via `useServerFn`. UI labels and layout unchanged. Razorpay confirmation still out of scope for this turn (cod -> pending, razorpay -> pending until you wire payment confirmation).
-
-## 6. Account / Order History (new UI)
-
-- **`/account/orders`** under `_authenticated/` (integration-managed gate redirects to `/auth`).
-- Loader calls a `getMyOrders` server fn (`requireSupabaseAuth`) returning the user's orders + items via RLS as that user.
-- Page: order # · date · items list · total · status. Card list, on-brand (deep teal headings, amber accents), no new design system work.
-
-## 7. Resend Emails
-
-- Link `Carwalho's Cafe Resend` connector.
-- `src/lib/email/templates.ts` - two inline-CSS branded templates (green logo, palette tokens).
-- `src/lib/email/send.server.ts` `sendOrderEmails(order)`:
-  - Customer: `From: Carwalho's Cafe <no-reply@carwalhoscafe.in>`, `Reply-To: support@carwalhoscafe.in`. Order #, items, total, payment, delivery/pickup, contact.
-  - Admin -> `lawrance@carwalhoscafe.in`: customer + contact + address + payment + notes + lines + totals + timestamp.
-- **Prereq for you**: verify `no-reply@carwalhoscafe.in` (and the `carwalhoscafe.in` domain SPF/DKIM) as a verified sender in your Resend account before going live. Zoho hosting the inbox doesn't authorize Resend to send as it. I'll log a clear error if Resend 403s.
-
-## 8. Google Sheets Reporting
-
-- Link `Carwalho's Cafe Google Sheets` connector.
-- Resolve spreadsheet `Carwalho's Cafe Business System` via Drive search. If 0 or >1 match, I'll pause and ask for the spreadsheet ID.
-- Store ID as runtime secret `SHEETS_SPREADSHEET_ID`.
-- **Append logic** (writes):
-  - `appendOrder` -> `Orders`: Order ID, Date, Time, Name, Phone, Email, Order Type, Items, Quantity, Total, Payment Method, Payment Status, Order Status, Notes.
-  - `appendContactMessage` -> `Contact Messages`: Date, Time, Name, Phone, Email, Subject, Message.
-  - `appendNewsletterSignup` -> `Newsletter Subscribers`: Date, Time, Name, Email, Source, Status.
-- **Confirm-exists-only** (no writes, just startup sanity check): `Menu Management`, `Customers`, `Reviews`, `Inventory`, `Expenses`, **`Sales Dashboard`**. If any are missing the deploy log warns; the app does not touch them.
-- All Sheets calls wrapped in try/catch; failures logged, never break user flow.
-
-## 9. Contact & Newsletter Backends (no UI per your option a)
-
-- `submitContactMessage` server fn -> `appendContactMessage`.
-- `subscribeNewsletter` server fn -> `appendNewsletterSignup`.
-- Existing contact/footer UI untouched. Wire forms to these later.
+Also: there are pending 500s on `GET /` I'll fix quietly as part of this work.
 
 ---
 
-## Out of scope (explicitly)
-- Tax/GST fields - not applicable.
-- Razorpay payment confirmation - separate turn.
-- Redesign of any existing page beyond adding `/auth`, `/auth/callback`, `/account/orders`, and one header link.
+## Part 1 - Real 5km delivery radius (Google Maps)
 
-## After deploy you do
-- Verify `no-reply@carwalhoscafe.in` + domain in Resend dashboard.
-- Point `carwalhoscafe.in` DNS at the Cloudflare Worker (config already in `wrangler.toml`).
+**Connector**: link the Google Maps Platform connector (gateway-backed - no API key request needed from you).
 
-Ready to switch to build mode on approval.
+**Shop origin**: Alagappa Nagar, Pallavaram, Chennai 600117. I'll geocode once and hardcode the lat/lng constant (`SHOP_LAT`, `SHOP_LNG`) to save per-order calls.
+
+**Client side (`/checkout`)**
+- Replace the free-text address textarea with a Google Places autocomplete input (`PlaceAutocompleteElement`, biased to Chennai), plus an optional "flat/floor/landmark" line.
+- On selection, capture `place_id`, formatted address, lat, lng.
+- Immediately compute haversine distance from shop. If > 5km, show inline error "Sorry, you're X.X km away - we only deliver within 5 km of Pallavaram" and disable Place Order.
+- Pickup orders skip the check entirely.
+
+**Server side (authoritative, `submitOrder`)**
+- Extend Zod input: when `order_type === "delivery"`, require `delivery_lat`, `delivery_lng`, `delivery_address`.
+- Recompute haversine on the server. If > 5km → throw 400. The client check is UX only; the server is the gate.
+- Persist `delivery_lat`, `delivery_lng`, `delivery_distance_km` on the order row (new columns) so admin can see distance and we have an audit trail.
+
+**Schema migration**: add `delivery_lat numeric`, `delivery_lng numeric`, `delivery_distance_km numeric` to `orders` (nullable - pickup orders won't have them).
+
+---
+
+## Part 2 - Admin dashboard (`/admin/orders`)
+
+**Access control (user_roles pattern)**
+- Migration creates: `app_role` enum (`admin`, `customer`), `user_roles` table (`user_id`, `role`, unique), `has_role(uid, role)` security-definer function. Standard grants + RLS (users see own roles; only admins write - via `has_role`).
+- Extend `orders` / `order_items` RLS: admins can SELECT all and UPDATE order status.
+- After the migration runs, I'll insert one row granting `lawrance@carwalhoscafe.in` the `admin` role (looked up from `auth.users` by email). If that user hasn't signed in yet, I'll tell you and you sign in once, then I run the grant.
+
+**Route structure**
+- New pathless layout `src/routes/_admin/route.tsx` (mirrors `_authenticated/route.tsx` pattern, `ssr: false`): checks session + calls a `requireAdmin` server fn that runs `has_role(uid, 'admin')`. Non-admins → redirect to `/`.
+- New page `src/routes/_admin/admin.orders.tsx` → `/admin/orders`.
+
+**Page UI** (on-brand, consistent with `/account/orders` - same card/table styling, cream/primary tokens)
+- Sortable table: Order #, Time (IST), Customer (name + phone), Items (compact list), Type (delivery/pickup), Distance (km, delivery only), Payment, Status (colored), Total.
+- Status dropdown per row: `confirmed → preparing → ready → completed` (also `cancelled`). Inline update via `updateOrderStatus` server fn (admin-gated, uses `has_role`).
+- Simple filters: status (all/active/completed), date (today/this week/all).
+- Auto-refresh every 30s via TanStack Query.
+
+**Header link**: small "Admin" link in `SiteHeader` shown only when `has_role(uid,'admin')` returns true (cached query).
+
+**Out of scope** (per your message): contact messages, inventory, reviews, customer list - none touched.
+
+---
+
+## Files
+
+New:
+- `src/lib/geo.ts` - shop constants + haversine helper (isomorphic)
+- `src/lib/admin.functions.ts` - `requireAdmin`, `listAllOrders`, `updateOrderStatus`, `amIAdmin`
+- `src/routes/_admin/route.tsx` - admin gate layout
+- `src/routes/_admin/admin.orders.tsx` - dashboard
+- `src/components/AddressAutocomplete.tsx` - Places (New) browser autocomplete
+
+Modified:
+- `src/routes/checkout.tsx` - replace textarea with autocomplete + distance check + lat/lng in payload
+- `src/lib/orders.functions.ts` - validate lat/lng, server-side haversine, persist distance
+- `src/components/SiteHeader.tsx` - conditional Admin link
+- `src/integrations/supabase/types.ts` - regenerated post-migration
+
+Migrations (two, run sequentially):
+1. Add `delivery_lat/lng/distance_km` to `orders`.
+2. Create `app_role`, `user_roles`, `has_role`, grants, RLS policies, extend `orders` policies for admin SELECT/UPDATE.
+
+---
+
+## Open item I'll handle without asking
+
+The two 500s on `GET /` showing in runtime errors - I'll read the stack and fix as part of this pass.
+
+## What I need from you before building
+
+1. Approve this plan.
+2. I'll link the Google Maps connector via the connect tool (no key request - it's workspace-managed).
+3. Confirm `lawrance@carwalhoscafe.in` has signed into the site at least once (so there's an `auth.users` row to grant admin to). If not, sign in once after the migration and I'll seed the role.
