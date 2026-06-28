@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { distanceFromShopKm, DELIVERY_RADIUS_KM } from "./geo";
 
 const itemSchema = z.object({
   product_id: z.string(),
@@ -16,6 +17,8 @@ const submitInput = z.object({
   customer_email: z.string().email().optional().nullable(),
   order_type: z.enum(["delivery", "pickup"]).default("delivery"),
   delivery_address: z.string().max(500).optional().nullable(),
+  delivery_lat: z.number().min(-90).max(90).optional().nullable(),
+  delivery_lng: z.number().min(-180).max(180).optional().nullable(),
   notes: z.string().max(500).optional().nullable(),
   payment_method: z.enum(["razorpay", "cod"]),
   items: z.array(itemSchema).min(1),
