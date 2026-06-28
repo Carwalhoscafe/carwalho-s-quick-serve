@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 import { useEffect, useRef, useState } from "react";
 
 export type SelectedAddress = {
@@ -60,8 +61,7 @@ export function AddressAutocomplete({
         const { PlaceAutocompleteElement } =
           (await window.google.maps.importLibrary("places")) as google.maps.PlacesLibrary;
 
-        // @ts-expect-error - PlaceAutocompleteElement options are partial
-        element = new PlaceAutocompleteElement({
+        element = new (PlaceAutocompleteElement as unknown as new (opts: unknown) => HTMLElement)({
           includedRegionCodes: ["in"],
           // Bias to Chennai
           locationBias: {
