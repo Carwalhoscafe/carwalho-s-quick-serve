@@ -30,7 +30,7 @@ function CheckoutPage() {
   const [user, setUser] = useState<User | undefined>(undefined);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [done, setDone] = useState<{ number: string } | null>(null);
+  const [done, setDone] = useState<{ number: string; received: string; eta: string } | null>(null);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -89,7 +89,7 @@ function CheckoutPage() {
           })),
         },
       });
-      setDone({ number: res.order_number });
+      setDone({ number: res.order_number, received: res.received_label, eta: res.estimated_delivery_label });
       clear();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Could not place order");
@@ -113,8 +113,14 @@ function CheckoutPage() {
           <div className="rounded-2xl border border-primary/40 bg-primary/5 p-8 text-center">
             <p className="text-xs uppercase tracking-widest text-primary">Order confirmed</p>
             <h2 className="mt-2 text-3xl text-cream">{done.number}</h2>
-            <p className="mt-3 text-sm text-muted-foreground">
-              We've emailed your confirmation. We'll prepare it fresh and dispatch it in our next slot.
+            <p className="mt-3 text-sm text-cream">
+              <span className="text-muted-foreground">Received</span> {done.received} IST
+            </p>
+            <p className="mt-1 text-sm text-cream">
+              <span className="text-muted-foreground">Estimated delivery</span> · <span className="text-primary font-semibold">{done.eta}</span>
+            </p>
+            <p className="mt-3 text-xs text-muted-foreground">
+              We've emailed your confirmation. Cash on Delivery — please keep the exact amount ready.
             </p>
             <div className="mt-6 flex justify-center gap-3">
               <Link to="/account/orders" className="rounded-full border border-primary/60 px-5 py-2 text-sm font-semibold text-cream hover:bg-primary/10">

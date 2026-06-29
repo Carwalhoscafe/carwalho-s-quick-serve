@@ -1,82 +1,86 @@
-## Status of last session
 
-The 5km radius check was **never implemented** - it only exists as marketing copy on `about`, `menu`, `index`, `shipping`, and `terms`. Checkout takes a free-text textarea; `submitOrder` accepts any string. Nothing to "finish" - it's a clean build.
+# Plan: Email reliability, order ETA, and Sheets verification
 
-Also: there are pending 500s on `GET /` I'll fix quietly as part of this work.
+## Part 1 — Auth emails (branded, via Lovable's email pipe)
 
----
+You don't have Supabase dashboard access on Lovable Cloud, so the cleanest fix is to route auth emails through Lovable's managed email infrastructure (same `no-reply@carwalhoscafe.in` sender already used for order emails).
 
-## Part 1 - Real 5km delivery radius (Google Maps)
+Steps:
+1. Check email-domain status. The order pipe already sends from `carwalhoscafe.in`, so the domain is verified — no setup dialog needed.
+2. Run email infrastructure setup (idempotent — creates the queue, cron job, suppression tables if not already there).
+3. Scaffold branded auth email templates (`signup`, `magiclink`, `recovery`, `invite`, `email_change`, `reauthentication`). Apply Carwalho's brand styling (cream bg `#fbf7ee`, deep green `#0f3d2e`, gold `#c79a3a`, logo header) to match `emails.server.ts`.
+4. In `src/routes/auth.tsx`, hardcode `emailRedirectTo: "https://www.carwalhoscafe.in/auth/callback"` on both `signInWithOtp` (email magic link) and the phone OTP flow's post-verify navigation. This kills the "magic link lands on preview" bug.
+5. For Google OAuth via the lovable broker, set `redirect_uri: "https://www.carwalhoscafe.in"` similarly.
 
-**Connector**: link the Google Maps Platform connector (gateway-backed - no API key request needed from you).
+## Part 2 — Order emails (Path B)
 
-**Shop origin**: Alagappa Nagar, Pallavaram, Chennai 600117. I'll geocode once and hardcode the lat/lng constant (`SHOP_LAT`, `SHOP_LNG`) to save per-order calls.
+1. Verify the Resend connector is connected and `RESEND_API_KEY` is current. If disconnected, run the connect flow. No code change to `integrations.server.ts` unless the connector is healthy and emails still fail.
+2. After the test order in the acceptance test, inspect server-function logs for `[resend]` failure lines.
 
-**Client side (`/checkout`)**
-- Replace the free-text address textarea with a Google Places autocomplete input (`PlaceAutocompleteElement`, biased to Chennai), plus an optional "flat/floor/landmark" line.
-- On selection, capture `place_id`, formatted address, lat, lng.
-- Immediately compute haversine distance from shop. If > 5km, show inline error "Sorry, you're X.X km away - we only deliver within 5 km of Pallavaram" and disable Place Order.
-- Pickup orders skip the check entirely.
+## Part 3 — Order received time + estimated delivery (new)
 
-**Server side (authoritative, `submitOrder`)**
-- Extend Zod input: when `order_type === "delivery"`, require `delivery_lat`, `delivery_lng`, `delivery_address`.
-- Recompute haversine on the server. If > 5km → throw 400. The client check is UX only; the server is the gate.
-- Persist `delivery_lat`, `delivery_lng`, `delivery_distance_km` on the order row (new columns) so admin can see distance and we have an audit trail.
+### New file: `src/lib/delivery-estimate.ts`
+Isomorphic, no deps. Exports:
+- `computeEstimatedDelivery(orderType, placedAt) → { receivedLabel, etaLabel }`
+- IST-aware (`Asia/Kolkata` via `toLocaleString` options, no tz library).
+- Rule (from Shipping Policy, Mon–Fri 10:00–14:00 IST):
+  - Inside window on a weekday → `etaLabel = "Later today"`.
+  - Outside window or weekend → roll forward to next weekday → `etaLabel = "<Weekday> morning"` (e.g., "Tuesday morning").
+- `receivedLabel`: `"30 Jun, 2:14 PM"` in IST.
+- Pickup branch accepted but returns same shape for now.
 
-**Schema migration**: add `delivery_lat numeric`, `delivery_lng numeric`, `delivery_distance_km numeric` to `orders` (nullable - pickup orders won't have them).
+### Migration
+Add nullable `estimated_delivery_label text` to `public.orders`. (Column-only — RLS/grants unchanged.)
 
----
+### Wire into `submitOrder` (`src/lib/orders.functions.ts`)
+- After insert, compute estimate from `order.created_at`.
+- Update the row with `estimated_delivery_label`.
+- Pass `etaLabel`/`receivedLabel` to both email templates and the Sheets row.
 
-## Part 2 - Admin dashboard (`/admin/orders`)
+### Surface the stored label (read column, don't recompute) on:
+1. `src/routes/checkout.tsx` — `done` state replaces the generic confirmation copy with "Received <receivedLabel> · Estimated delivery: <etaLabel>".
+2. `src/lib/emails.server.ts` — add a single line under order number in both `customerConfirmationEmail` and `adminNotificationEmail`.
+3. `src/routes/_authenticated/account.orders.tsx` — show ETA per order row.
+4. `src/routes/_admin/admin.orders.tsx` — add "ETA" column; include `estimated_delivery_label` in `listAllOrders` select in `src/lib/admin.functions.ts`. Also include it in `listMyOrders`.
 
-**Access control (user_roles pattern)**
-- Migration creates: `app_role` enum (`admin`, `customer`), `user_roles` table (`user_id`, `role`, unique), `has_role(uid, role)` security-definer function. Standard grants + RLS (users see own roles; only admins write - via `has_role`).
-- Extend `orders` / `order_items` RLS: admins can SELECT all and UPDATE order status.
-- After the migration runs, I'll insert one row granting `lawrance@carwalhoscafe.in` the `admin` role (looked up from `auth.users` by email). If that user hasn't signed in yet, I'll tell you and you sign in once, then I run the grant.
+`submitOrder` returns `{ order_number, order_id, estimated_delivery_label, received_label }` so the confirmation screen renders without an extra fetch.
 
-**Route structure**
-- New pathless layout `src/routes/_admin/route.tsx` (mirrors `_authenticated/route.tsx` pattern, `ssr: false`): checks session + calls a `requireAdmin` server fn that runs `has_role(uid, 'admin')`. Non-admins → redirect to `/`.
-- New page `src/routes/_admin/admin.orders.tsx` → `/admin/orders`.
+## Part 4 — Sheets
 
-**Page UI** (on-brand, consistent with `/account/orders` - same card/table styling, cream/primary tokens)
-- Sortable table: Order #, Time (IST), Customer (name + phone), Items (compact list), Type (delivery/pickup), Distance (km, delivery only), Payment, Status (colored), Total.
-- Status dropdown per row: `confirmed → preparing → ready → completed` (also `cancelled`). Inline update via `updateOrderStatus` server fn (admin-gated, uses `has_role`).
-- Simple filters: status (all/active/completed), date (today/this week/all).
-- Auto-refresh every 30s via TanStack Query.
-
-**Header link**: small "Admin" link in `SiteHeader` shown only when `has_role(uid,'admin')` returns true (cached query).
-
-**Out of scope** (per your message): contact messages, inventory, reviews, customer list - none touched.
-
----
+- Append `estimated_delivery_label` as the final column of the Orders row in `submitOrder` (one-line change). No new worksheets.
+- Verification happens during the acceptance test, not via code. If the row doesn't land, the next step is to check `resolveSpreadsheetId()` is finding the file — no preemptive change.
 
 ## Files
 
-New:
-- `src/lib/geo.ts` - shop constants + haversine helper (isomorphic)
-- `src/lib/admin.functions.ts` - `requireAdmin`, `listAllOrders`, `updateOrderStatus`, `amIAdmin`
-- `src/routes/_admin/route.tsx` - admin gate layout
-- `src/routes/_admin/admin.orders.tsx` - dashboard
-- `src/components/AddressAutocomplete.tsx` - Places (New) browser autocomplete
+**New**
+- `src/lib/delivery-estimate.ts`
 
-Modified:
-- `src/routes/checkout.tsx` - replace textarea with autocomplete + distance check + lat/lng in payload
-- `src/lib/orders.functions.ts` - validate lat/lng, server-side haversine, persist distance
-- `src/components/SiteHeader.tsx` - conditional Admin link
-- `src/integrations/supabase/types.ts` - regenerated post-migration
+**Modified**
+- `src/lib/orders.functions.ts` (compute + persist + return ETA, pass to email/sheets, include in `listMyOrders` select)
+- `src/lib/admin.functions.ts` (include `estimated_delivery_label` in select)
+- `src/lib/emails.server.ts` (add ETA line in both templates; extend `OrderEmailData`)
+- `src/routes/checkout.tsx` (render ETA on done state, hardcode prod redirect for magic link)
+- `src/routes/auth.tsx` (hardcode `emailRedirectTo`/Google `redirect_uri` to `https://www.carwalhoscafe.in`)
+- `src/routes/_authenticated/account.orders.tsx` (show ETA)
+- `src/routes/_admin/admin.orders.tsx` (ETA column)
 
-Migrations (two, run sequentially):
-1. Add `delivery_lat/lng/distance_km` to `orders`.
-2. Create `app_role`, `user_roles`, `has_role`, grants, RLS policies, extend `orders` policies for admin SELECT/UPDATE.
+**Migration**
+- `ALTER TABLE public.orders ADD COLUMN estimated_delivery_label text;`
 
----
+**Scaffolded by tools (not hand-written)**
+- `supabase/functions/auth-email-hook/...` + 6 React Email templates under `_shared/email-templates/`, branded.
 
-## Open item I'll handle without asking
+## What I'll do at build time vs what you handle
 
-The two 500s on `GET /` showing in runtime errors - I'll read the stack and fix as part of this pass.
+I'll do:
+- Email infra + auth template scaffold + brand styling
+- Hardcode prod redirect URLs in auth flows
+- Connector reconnect prompt if Resend shows disconnected
+- All Part 3 + Part 4 code & migration
 
-## What I need from you before building
+You handle (out-of-band, after build):
+- Google Maps key referrer allowlist for `carwalhoscafe.in` / `www.carwalhoscafe.in`
+- Footer copy fix (separate pass — not in this plan)
 
-1. Approve this plan.
-2. I'll link the Google Maps connector via the connect tool (no key request - it's workspace-managed).
-3. Confirm `lawrance@carwalhoscafe.in` has signed into the site at least once (so there's an `auth.users` row to grant admin to). If not, sign in once after the migration and I'll seed the role.
+## Acceptance test
+Same 11-step flow you listed. I'll run a smoke pass on what I can verify in the sandbox (compile, server-fn logs, migration applied) but the inbox/Sheets/live-domain checks are yours to confirm.

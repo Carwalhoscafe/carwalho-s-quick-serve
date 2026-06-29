@@ -56,6 +56,11 @@ function OrdersPage() {
                     <p className="text-xs text-muted-foreground">
                       {new Date(o.created_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
                     </p>
+                    {o.estimated_delivery_label && (
+                      <p className="mt-1 text-xs text-primary">
+                        ETA · {o.estimated_delivery_label}
+                      </p>
+                    )}
                   </div>
                   <div className="text-right">
                     <p className="text-2xl text-primary" style={{ fontFamily: "var(--font-display)" }}>

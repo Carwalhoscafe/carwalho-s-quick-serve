@@ -53,10 +53,13 @@ function AuthPage() {
     return () => sub.subscription.unsubscribe();
   }, [navigate, next]);
 
+  // Production origin for email links / OAuth returns — independent of preview host.
+  const PROD_ORIGIN = "https://www.carwalhoscafe.in";
+
   async function signInGoogle() {
     setErr(null);
     const res = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/auth",
+      redirect_uri: PROD_ORIGIN + "/auth",
     });
     if (res.error) setErr(res.error.message || "Google sign-in failed");
   }
@@ -66,7 +69,7 @@ function AuthPage() {
     setBusy(true); setErr(null); setMsg(null);
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: window.location.origin + "/auth?next=" + encodeURIComponent(next ?? "/checkout") },
+      options: { emailRedirectTo: PROD_ORIGIN + "/auth?next=" + encodeURIComponent(next ?? "/checkout") },
     });
     setBusy(false);
     if (error) setErr(error.message);
