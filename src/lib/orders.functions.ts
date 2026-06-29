@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { distanceFromShopKm, DELIVERY_RADIUS_KM } from "./geo";
+import { computeEstimatedDelivery } from "./delivery-estimate";
 
 const itemSchema = z.object({
   product_id: z.string(),

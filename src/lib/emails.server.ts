@@ -24,6 +24,8 @@ export type OrderEmailData = {
   deliveryFee: number;
   total: number;
   createdAt: string;
+  receivedLabel: string;
+  etaLabel: string;
 };
 
 function rowsHtml(items: OrderEmailData["items"]) {
@@ -60,7 +62,8 @@ function shell(inner: string, preheader: string) {
 export function customerConfirmationEmail(d: OrderEmailData) {
   const inner = `
     <h1 style="margin:0 0 8px;font-size:22px;color:${BRAND.primary};">Thank you, ${d.customerName}!</h1>
-    <p style="margin:0 0 16px;color:${BRAND.muted};">Your order <strong>${d.orderNumber}</strong> is confirmed. We will prepare and deliver it fresh.</p>
+    <p style="margin:0 0 6px;color:${BRAND.muted};">Your order <strong>${d.orderNumber}</strong> is confirmed.</p>
+    <p style="margin:0 0 16px;color:${BRAND.text};font-size:14px;"><strong>Received:</strong> ${d.receivedLabel} IST &nbsp;·&nbsp; <strong>Estimated delivery:</strong> ${d.etaLabel}</p>
     <table width="100%" style="border-collapse:collapse;margin-top:12px;">${rowsHtml(d.items)}
       <tr><td style="padding:10px 0;">Subtotal</td><td style="padding:10px 0;text-align:right;">Rs ${d.subtotal}</td></tr>
       ${d.deliveryFee > 0 ? `<tr><td style="padding:6px 0;">Delivery</td><td style="padding:6px 0;text-align:right;">Rs ${d.deliveryFee}</td></tr>` : ""}
@@ -77,7 +80,8 @@ export function customerConfirmationEmail(d: OrderEmailData) {
 export function adminNotificationEmail(d: OrderEmailData) {
   const inner = `
     <h1 style="margin:0 0 6px;font-size:20px;color:${BRAND.primary};">New order ${d.orderNumber}</h1>
-    <p style="margin:0 0 14px;color:${BRAND.muted};font-size:13px;">${new Date(d.createdAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}</p>
+    <p style="margin:0 0 6px;color:${BRAND.muted};font-size:13px;">${new Date(d.createdAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}</p>
+    <p style="margin:0 0 14px;color:${BRAND.text};font-size:13px;"><strong>Received:</strong> ${d.receivedLabel} IST &nbsp;·&nbsp; <strong>ETA:</strong> ${d.etaLabel}</p>
     <table width="100%" style="font-size:13px;color:${BRAND.text};">
       <tr><td><strong>Customer:</strong></td><td>${d.customerName}</td></tr>
       <tr><td><strong>Phone:</strong></td><td><a href="tel:${d.customerPhone}">${d.customerPhone}</a></td></tr>
