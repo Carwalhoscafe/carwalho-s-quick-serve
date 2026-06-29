@@ -83,8 +83,18 @@ export const submitOrder = createServerFn({ method: "POST" })
 
     if (oErr || !order) throw new Error(oErr?.message ?? "Order insert failed");
 
-    // Insert items via admin (bypass RLS for the join row creation under user context is fine
-    // because RLS is INSERT-denied; use admin client server-side).
+    // Compute and persist ETA once, from server-stamped created_at.
+    const { receivedLabel, etaLabel } = computeEstimatedDelivery(
+      data.order_type,
+      new Date(order.created_at),
+    );
+    const { error: updErr } = await supabase
+      .from("orders")
+      .update({ estimated_delivery_label: etaLabel })
+      .eq("id", order.id);
+    if (updErr) console.error("[order] failed to save ETA label", updErr);
+
+    // Insert items via admin (RLS denies INSERT under the user; admin client only here).
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const itemsPayload = data.items.map(i => ({
       order_id: order.id,
@@ -118,6 +128,8 @@ export const submitOrder = createServerFn({ method: "POST" })
         deliveryFee: data.delivery_fee ?? 0,
         total,
         createdAt: order.created_at,
+        receivedLabel,
+        etaLabel,
       };
 
       const promises: Promise<unknown>[] = [];
@@ -144,6 +156,7 @@ export const submitOrder = createServerFn({ method: "POST" })
         data.customer_name, data.customer_phone, order.customer_email ?? "",
         data.order_type, itemsStr, qtyTotal, total,
         data.payment_method, "pending", "confirmed", data.notes ?? "",
+        etaLabel,
       ]));
 
       await Promise.allSettled(promises);
@@ -151,7 +164,7 @@ export const submitOrder = createServerFn({ method: "POST" })
       console.error("[order] post-insert side effects failed", e);
     }
 
-    return { ok: true, order_number: number, order_id: order.id };
+    return { ok: true, order_number: number, order_id: order.id, received_label: receivedLabel, estimated_delivery_label: etaLabel };
   });
 
 export const listMyOrders = createServerFn({ method: "GET" })
@@ -159,7 +172,7 @@ export const listMyOrders = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data: orders, error } = await context.supabase
       .from("orders")
-      .select("id, order_number, created_at, total, order_status, payment_status, payment_method, order_type")
+      .select("id, order_number, created_at, total, order_status, payment_status, payment_method, order_type, estimated_delivery_label")
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) throw new Error(error.message);
