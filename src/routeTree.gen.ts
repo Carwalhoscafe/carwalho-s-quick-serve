@@ -33,6 +33,7 @@ import { Route as AdminRouteRouteImport } from './routes/_admin/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAccountOrdersRouteImport } from './routes/_authenticated/account.orders'
 import { Route as AdminAdminOrdersRouteImport } from './routes/_admin/admin.orders'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -153,6 +154,12 @@ const AdminAdminOrdersRoute = AdminAdminOrdersRouteImport.update({
   path: '/admin/orders',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -177,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/admin/orders': typeof AdminAdminOrdersRoute
   '/account/orders': typeof AuthenticatedAccountOrdersRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -201,6 +209,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/admin/orders': typeof AdminAdminOrdersRoute
   '/account/orders': typeof AuthenticatedAccountOrdersRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -228,6 +237,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/_admin/admin/orders': typeof AdminAdminOrdersRoute
   '/_authenticated/account/orders': typeof AuthenticatedAccountOrdersRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -254,6 +264,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/admin/orders'
     | '/account/orders'
+    | '/lovable/email/queue/process'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -278,6 +289,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/admin/orders'
     | '/account/orders'
+    | '/lovable/email/queue/process'
   id:
     | '__root__'
     | '/'
@@ -304,6 +316,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/_admin/admin/orders'
     | '/_authenticated/account/orders'
+    | '/lovable/email/queue/process'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -329,6 +342,7 @@ export interface RootRouteChildren {
   ShippingRoute: typeof ShippingRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
+  LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -501,6 +515,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAdminOrdersRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -550,6 +571,7 @@ const rootRouteChildren: RootRouteChildren = {
   ShippingRoute: ShippingRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
+  LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
