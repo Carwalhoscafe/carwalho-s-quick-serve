@@ -63,6 +63,7 @@ export type Database = {
           delivery_fee: number
           delivery_lat: number | null
           delivery_lng: number | null
+          estimated_delivery_label: string | null
           id: string
           notes: string | null
           order_number: string
@@ -84,6 +85,7 @@ export type Database = {
           delivery_fee?: number
           delivery_lat?: number | null
           delivery_lng?: number | null
+          estimated_delivery_label?: string | null
           id?: string
           notes?: string | null
           order_number: string
@@ -105,6 +107,7 @@ export type Database = {
           delivery_fee?: number
           delivery_lat?: number | null
           delivery_lng?: number | null
+          estimated_delivery_label?: string | null
           id?: string
           notes?: string | null
           order_number?: string
