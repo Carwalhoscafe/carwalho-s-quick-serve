@@ -95,6 +95,7 @@ function AdminOrdersPage() {
                   <th className="px-4 py-3 text-left">Customer</th>
                   <th className="px-4 py-3 text-left">Items</th>
                   <th className="px-4 py-3 text-left">Type</th>
+                  <th className="px-4 py-3 text-left">ETA</th>
                   <th className="px-4 py-3 text-left">Payment</th>
                   <th className="px-4 py-3 text-right">Total</th>
                   <th className="px-4 py-3 text-left">Status</th>
@@ -148,6 +149,9 @@ function AdminOrdersPage() {
                           {Number(o.delivery_distance_km).toFixed(1)} km
                         </div>
                       )}
+                    </td>
+                    <td className="px-4 py-4 text-xs text-cream/90">
+                      {o.estimated_delivery_label ?? <span className="text-muted-foreground">—</span>}
                     </td>
                     <td className="px-4 py-4 text-xs">
                       <div>{o.payment_method === "cod" ? "Cash on Delivery" : "Razorpay"}</div>
