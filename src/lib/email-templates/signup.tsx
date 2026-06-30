@@ -1,16 +1,6 @@
 import * as React from 'react'
-
-import {
-  Body,
-  Button,
-  Container,
-  Head,
-  Heading,
-  Html,
-  Link,
-  Preview,
-  Text,
-} from '@react-email/components'
+import { Body, Button, Container, Head, Heading, Html, Img, Link, Preview, Section, Text } from '@react-email/components'
+import { BRAND, styles } from './_brand'
 
 interface SignupEmailProps {
   siteName: string
@@ -19,66 +9,34 @@ interface SignupEmailProps {
   confirmationUrl: string
 }
 
-export const SignupEmail = ({
-  siteName,
-  siteUrl,
-  recipient,
-  confirmationUrl,
-}: SignupEmailProps) => (
+export const SignupEmail = ({ siteUrl, recipient, confirmationUrl }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Confirm your email for {siteName}</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Heading style={h1}>Confirm your email</Heading>
-        <Text style={text}>
-          Thanks for signing up for{' '}
-          <Link href={siteUrl} style={link}>
-            <strong>{siteName}</strong>
-          </Link>
-          !
-        </Text>
-        <Text style={text}>
-          Please confirm your email address (
-          <Link href={`mailto:${recipient}`} style={link}>
-            {recipient}
-          </Link>
-          ) by clicking the button below:
-        </Text>
-        <Button style={button} href={confirmationUrl}>
-          Verify Email
-        </Button>
-        <Text style={footer}>
-          If you didn't create an account, you can safely ignore this email.
-        </Text>
+    <Preview>Confirm your email for {BRAND.shopName}</Preview>
+    <Body style={styles.main}>
+      <Container style={styles.container}>
+        <Section style={styles.header}>
+          <Img src={BRAND.logo} alt={BRAND.shopName} width={160} style={styles.logo} />
+        </Section>
+        <Section style={styles.body}>
+          <Heading style={styles.h1}>Welcome to {BRAND.shopName}</Heading>
+          <Text style={styles.text}>
+            Thanks for signing up at{' '}
+            <Link href={siteUrl} style={styles.link}><strong>{BRAND.shopName}</strong></Link>.
+            Please confirm <strong>{recipient}</strong> to start ordering fresh sugarcane juice and tender coconut delivery.
+          </Text>
+          <Button style={styles.button} href={confirmationUrl}>Confirm my email</Button>
+          <Text style={styles.footer}>
+            If you didn't create an account, you can safely ignore this email.
+          </Text>
+        </Section>
+        <Section style={styles.footerBar}>
+          {BRAND.shopName} · {BRAND.tagline}<br />
+          Mon–Fri · Order before 10:00 AM for same-day delivery
+        </Section>
       </Container>
     </Body>
   </Html>
 )
 
 export default SignupEmail
-
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
-const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
-}
-const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
-}
-const link = { color: 'inherit', textDecoration: 'underline' }
-const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
-  textDecoration: 'none',
-}
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
