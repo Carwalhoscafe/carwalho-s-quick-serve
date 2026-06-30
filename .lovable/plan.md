@@ -1,86 +1,59 @@
+## 1. Fix Google sign-in
 
-# Plan: Email reliability, order ETA, and Sheets verification
+Symptom: clicking "Continue with Google" on `/auth` fails. The OAuth helper (`lovable.auth.signInWithOAuth("google", ...)`) is wired correctly in `src/routes/auth.tsx`, but the Google provider must be enabled in Lovable Cloud auth or the call returns "Unsupported provider".
 
-## Part 1 — Auth emails (branded, via Lovable's email pipe)
+- Run `supabase--configure_social_auth` with `providers: ["google"]` to enable managed Google OAuth.
+- Keep `redirect_uri` as the production origin (already set to `https://www.carwalhoscafe.in/auth`). No code change to the button itself.
+- Verify in preview by clicking Google and confirming the consent screen loads.
 
-You don't have Supabase dashboard access on Lovable Cloud, so the cleanest fix is to route auth emails through Lovable's managed email infrastructure (same `no-reply@carwalhoscafe.in` sender already used for order emails).
+## 2. Customer reviews on `/reviews`
 
-Steps:
-1. Check email-domain status. The order pipe already sends from `carwalhoscafe.in`, so the domain is verified — no setup dialog needed.
-2. Run email infrastructure setup (idempotent — creates the queue, cron job, suppression tables if not already there).
-3. Scaffold branded auth email templates (`signup`, `magiclink`, `recovery`, `invite`, `email_change`, `reauthentication`). Apply Carwalho's brand styling (cream bg `#fbf7ee`, deep green `#0f3d2e`, gold `#c79a3a`, logo header) to match `emails.server.ts`.
-4. In `src/routes/auth.tsx`, hardcode `emailRedirectTo: "https://www.carwalhoscafe.in/auth/callback"` on both `signInWithOtp` (email magic link) and the phone OTP flow's post-verify navigation. This kills the "magic link lands on preview" bug.
-5. For Google OAuth via the lovable broker, set `redirect_uri: "https://www.carwalhoscafe.in"` similarly.
+Goal: any signed-in customer can post a review; reviews show publicly on `/reviews`. Keep visuals consistent with the existing dark/cream/primary palette.
 
-## Part 2 — Order emails (Path B)
+### Database (one migration)
 
-1. Verify the Resend connector is connected and `RESEND_API_KEY` is current. If disconnected, run the connect flow. No code change to `integrations.server.ts` unless the connector is healthy and emails still fail.
-2. After the test order in the acceptance test, inspect server-function logs for `[resend]` failure lines.
+`reviews` table:
+- `id uuid pk default gen_random_uuid()`
+- `user_id uuid not null references auth.users(id) on delete cascade`
+- `author_name text not null` (snapshot at submit time)
+- `rating int not null check (rating between 1 and 5)`
+- `body text not null check (char_length(body) between 10 and 600)`
+- `created_at timestamptz default now()`
+- `status text not null default 'published'` — kept simple; admins can later flip to 'hidden'
 
-## Part 3 — Order received time + estimated delivery (new)
+Grants + RLS:
+- `GRANT SELECT ON public.reviews TO anon, authenticated;`
+- `GRANT INSERT, UPDATE, DELETE ON public.reviews TO authenticated;`
+- `GRANT ALL ON public.reviews TO service_role;`
+- Policy: anyone may `SELECT` rows where `status = 'published'`.
+- Policy: authenticated users may `INSERT` rows where `user_id = auth.uid()`.
+- Policy: authenticated users may `UPDATE`/`DELETE` their own row.
+- Policy: admins (via existing `has_role(auth.uid(),'admin')`) may do anything.
 
-### New file: `src/lib/delivery-estimate.ts`
-Isomorphic, no deps. Exports:
-- `computeEstimatedDelivery(orderType, placedAt) → { receivedLabel, etaLabel }`
-- IST-aware (`Asia/Kolkata` via `toLocaleString` options, no tz library).
-- Rule (from Shipping Policy, Mon–Fri 10:00–14:00 IST):
-  - Inside window on a weekday → `etaLabel = "Later today"`.
-  - Outside window or weekend → roll forward to next weekday → `etaLabel = "<Weekday> morning"` (e.g., "Tuesday morning").
-- `receivedLabel`: `"30 Jun, 2:14 PM"` in IST.
-- Pickup branch accepted but returns same shape for now.
+### Server functions (`src/lib/reviews.functions.ts`)
 
-### Migration
-Add nullable `estimated_delivery_label text` to `public.orders`. (Column-only — RLS/grants unchanged.)
+- `listReviews()` — public, uses the server publishable client (no bearer), returns latest 100 published reviews with `{ id, author_name, rating, body, created_at }`.
+- `submitReview({ rating, body })` — uses `requireSupabaseAuth`. Pulls display name from `context.claims` (email/full_name fallback), inserts row, throws on validation failure. Returns the new review.
+- `deleteMyReview({ id })` — `requireSupabaseAuth`, deletes only own row.
 
-### Wire into `submitOrder` (`src/lib/orders.functions.ts`)
-- After insert, compute estimate from `order.created_at`.
-- Update the row with `estimated_delivery_label`.
-- Pass `etaLabel`/`receivedLabel` to both email templates and the Sheets row.
+### Route redesign: `src/routes/reviews.tsx`
 
-### Surface the stored label (read column, don't recompute) on:
-1. `src/routes/checkout.tsx` — `done` state replaces the generic confirmation copy with "Received <receivedLabel> · Estimated delivery: <etaLabel>".
-2. `src/lib/emails.server.ts` — add a single line under order number in both `customerConfirmationEmail` and `adminNotificationEmail`.
-3. `src/routes/_authenticated/account.orders.tsx` — show ETA per order row.
-4. `src/routes/_admin/admin.orders.tsx` — add "ETA" column; include `estimated_delivery_label` in `listAllOrders` select in `src/lib/admin.functions.ts`. Also include it in `listMyOrders`.
+Sections, keeping current hero styling:
+1. Existing hero header (unchanged copy/styling).
+2. **Aggregate strip**: average rating (1 decimal) + total count, computed from loader data.
+3. **Write a review** card:
+   - Signed in → 5-star picker, textarea (10–600 chars, live counter), Submit button. On success, optimistically prepend.
+   - Signed out → cream-bordered CTA card: "Sign in to share your experience" linking to `/auth?next=/reviews`.
+   - One review per session shows a subtle "Thanks!" toast (sonner already present).
+4. **Reviews grid**: 2-column on desktop, 1-column on mobile, cards with stars, name initial avatar, body, relative date. Empty state preserved when zero.
+5. Owner's own review shows a small "Delete" link.
 
-`submitOrder` returns `{ order_number, order_id, estimated_delivery_label, received_label }` so the confirmation screen renders without an extra fetch.
+Data loading uses the project's standard TanStack Query loader pattern (`ensureQueryData` + `useSuspenseQuery`). Public loader calls the public `listReviews` server fn (no bearer required).
 
-## Part 4 — Sheets
+### Files touched
+- `supabase/migrations/<new>.sql` (table + grants + RLS)
+- `src/lib/reviews.functions.ts` (new)
+- `src/routes/reviews.tsx` (redesign)
+- `src/components/StarRating.tsx` (small reusable display + input)
 
-- Append `estimated_delivery_label` as the final column of the Orders row in `submitOrder` (one-line change). No new worksheets.
-- Verification happens during the acceptance test, not via code. If the row doesn't land, the next step is to check `resolveSpreadsheetId()` is finding the file — no preemptive change.
-
-## Files
-
-**New**
-- `src/lib/delivery-estimate.ts`
-
-**Modified**
-- `src/lib/orders.functions.ts` (compute + persist + return ETA, pass to email/sheets, include in `listMyOrders` select)
-- `src/lib/admin.functions.ts` (include `estimated_delivery_label` in select)
-- `src/lib/emails.server.ts` (add ETA line in both templates; extend `OrderEmailData`)
-- `src/routes/checkout.tsx` (render ETA on done state, hardcode prod redirect for magic link)
-- `src/routes/auth.tsx` (hardcode `emailRedirectTo`/Google `redirect_uri` to `https://www.carwalhoscafe.in`)
-- `src/routes/_authenticated/account.orders.tsx` (show ETA)
-- `src/routes/_admin/admin.orders.tsx` (ETA column)
-
-**Migration**
-- `ALTER TABLE public.orders ADD COLUMN estimated_delivery_label text;`
-
-**Scaffolded by tools (not hand-written)**
-- `supabase/functions/auth-email-hook/...` + 6 React Email templates under `_shared/email-templates/`, branded.
-
-## What I'll do at build time vs what you handle
-
-I'll do:
-- Email infra + auth template scaffold + brand styling
-- Hardcode prod redirect URLs in auth flows
-- Connector reconnect prompt if Resend shows disconnected
-- All Part 3 + Part 4 code & migration
-
-You handle (out-of-band, after build):
-- Google Maps key referrer allowlist for `carwalhoscafe.in` / `www.carwalhoscafe.in`
-- Footer copy fix (separate pass — not in this plan)
-
-## Acceptance test
-Same 11-step flow you listed. I'll run a smoke pass on what I can verify in the sandbox (compile, server-fn logs, migration applied) but the inbox/Sheets/live-domain checks are yours to confirm.
+No design system changes, no new dependencies, no admin moderation UI in this pass.
