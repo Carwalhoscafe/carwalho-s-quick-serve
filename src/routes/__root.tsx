@@ -16,6 +16,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CartProvider } from "../lib/cart";
 import { CartDrawer } from "../components/CartDrawer";
 import { supabase } from "@/integrations/supabase/client";
+import { Toaster } from "@/components/ui/sonner";
 
 const SITE_URL = "https://carwalhoscafe.in";
 const GA_ID = "G-1DW57ZD8K3";
@@ -229,6 +230,7 @@ function RootComponent() {
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         <CartDrawer />
+        <Toaster />
       </CartProvider>
     </QueryClientProvider>
   );
