@@ -16,7 +16,7 @@ export const SignupEmail = ({ siteUrl, recipient, confirmationUrl }: SignupEmail
     <Body style={styles.main}>
       <Container style={styles.container}>
         <Section style={styles.header}>
-          <Img src={BRAND.logo} alt={BRAND.shopName} width={200} style={styles.logo} />
+          <Img src={BRAND.logo} alt={BRAND.shopName} width={420} style={styles.logo} />
         </Section>
         <Section style={styles.body}>
           <Heading style={styles.h1}>Welcome to {BRAND.shopName}</Heading>
