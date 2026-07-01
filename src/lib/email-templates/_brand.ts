@@ -5,7 +5,7 @@ export const BRAND = {
   cream: '#fbf7ee',
   text: '#1a1a1a',
   muted: '#666666',
-  logo: 'https://carwalhoscafe.in/__l5e/assets-v1/8567d0c8-0978-40c8-9b28-111ae00ebff9/carwalhos-email-logo-white.png',
+  logo: 'https://carwalhoscafe.in/__l5e/assets-v1/30434734-4514-42c6-8745-77724e861869/carwalhos-wordmark-white.png',
   siteUrl: 'https://www.carwalhoscafe.in',
   shopName: "Carwalho's Cafe",
   tagline: 'Pallavaram, Chennai',

@@ -14,7 +14,7 @@ export const MagicLinkEmail = ({ confirmationUrl }: MagicLinkEmailProps) => (
     <Body style={styles.main}>
       <Container style={styles.container}>
         <Section style={styles.header}>
-          <Img src={BRAND.logo} alt={BRAND.shopName} width={200} style={styles.logo} />
+          <Img src={BRAND.logo} alt={BRAND.shopName} width={420} style={styles.logo} />
         </Section>
         <Section style={styles.body}>
           <Heading style={styles.h1}>Your sign-in link</Heading>
