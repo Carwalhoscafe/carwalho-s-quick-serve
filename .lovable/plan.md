@@ -1,59 +1,44 @@
-## 1. Fix Google sign-in
+# Auth emails + seamless sign-in/out
 
-Symptom: clicking "Continue with Google" on `/auth` fails. The OAuth helper (`lovable.auth.signInWithOAuth("google", ...)`) is wired correctly in `src/routes/auth.tsx`, but the Google provider must be enabled in Lovable Cloud auth or the call returns "Unsupported provider".
+## 1. Upload the new white logo as a CDN asset
+- Run `lovable-assets create` on the uploaded `carwalho_s_CAFÉ_white_logo.png` (1069×110, transparent) → `src/assets/carwalhos-email-logo-white.png.asset.json`.
+- Use its CDN URL as `BRAND.logo` in `src/lib/email-templates/_brand.ts`.
+- Keep the dark-green header; adjust logo width to ~200px so the wide wordmark reads well at retina.
 
-- Run `supabase--configure_social_auth` with `providers: ["google"]` to enable managed Google OAuth.
-- Keep `redirect_uri` as the production origin (already set to `https://www.carwalhoscafe.in/auth`). No code change to the button itself.
-- Verify in preview by clicking Google and confirming the consent screen loads.
+This automatically updates all six auth templates (signup, magic link, recovery, invite, email change, reauthentication) since they all consume `BRAND.logo`.
 
-## 2. Customer reviews on `/reviews`
+## 2. Verify + light-polish each template
+Quick pass over the 6 templates to confirm:
+- Preview text is meaningful.
+- Reauthentication template shows the 6-digit `token` prominently.
+- Recovery template CTA copy = "Reset my password" (currently generic in some).
+- Footer line "Mon–Fri · Order before 10:00 AM for same-day delivery" is present.
+No structural rewrites — brand file change does the heavy lifting.
 
-Goal: any signed-in customer can post a review; reviews show publicly on `/reviews`. Keep visuals consistent with the existing dark/cream/primary palette.
+## 3. Seamless login/logout
+Currently:
+- `/auth` handles Google + email magic link + phone OTP, and auto-navigates on `SIGNED_IN`. ✓
+- There is no visible **Sign out** control anywhere in `SiteHeader`, and no account menu — signed-in users can't sign out without going to `/account/orders`.
 
-### Database (one migration)
+Changes:
+- **`SiteHeader.tsx`**: add a small auth affordance on the right (next to Cart).
+  - Signed out → `Sign in` link → `/auth`.
+  - Signed in → compact avatar/initial dropdown with: **My orders** (`/account/orders`), **Sign out**.
+  - Uses `supabase.auth.getUser()` on mount + `onAuthStateChange` subscription so it updates instantly across tabs.
+- **Sign out handler**: `await supabase.auth.signOut()` then `navigate({ to: '/' })` and clear cart-persist only if user prefers (leave cart alone by default — matches premium ecom UX).
+- **Post-login return-to**: `/auth` already respects `?next=`. Confirm `SiteHeader`'s Sign in link preserves current path via `next=` so users land back where they started.
+- **Magic link / OAuth callback**: already redirect to `PROD_ORIGIN + /auth?next=…`, which the existing `SIGNED_IN` listener forwards. ✓
 
-`reviews` table:
-- `id uuid pk default gen_random_uuid()`
-- `user_id uuid not null references auth.users(id) on delete cascade`
-- `author_name text not null` (snapshot at submit time)
-- `rating int not null check (rating between 1 and 5)`
-- `body text not null check (char_length(body) between 10 and 600)`
-- `created_at timestamptz default now()`
-- `status text not null default 'published'` — kept simple; admins can later flip to 'hidden'
+## 4. No backend / schema changes
+No migrations, no new server functions, no changes to `/lovable/email/auth/webhook.ts` — the webhook already renders whichever logo `_brand.ts` exports.
 
-Grants + RLS:
-- `GRANT SELECT ON public.reviews TO anon, authenticated;`
-- `GRANT INSERT, UPDATE, DELETE ON public.reviews TO authenticated;`
-- `GRANT ALL ON public.reviews TO service_role;`
-- Policy: anyone may `SELECT` rows where `status = 'published'`.
-- Policy: authenticated users may `INSERT` rows where `user_id = auth.uid()`.
-- Policy: authenticated users may `UPDATE`/`DELETE` their own row.
-- Policy: admins (via existing `has_role(auth.uid(),'admin')`) may do anything.
+## Files touched
+- `src/assets/carwalhos-email-logo-white.png.asset.json` (new)
+- `src/lib/email-templates/_brand.ts`
+- `src/lib/email-templates/recovery.tsx`, `reauthentication.tsx` (copy polish only)
+- `src/components/SiteHeader.tsx` (auth menu)
 
-### Server functions (`src/lib/reviews.functions.ts`)
-
-- `listReviews()` — public, uses the server publishable client (no bearer), returns latest 100 published reviews with `{ id, author_name, rating, body, created_at }`.
-- `submitReview({ rating, body })` — uses `requireSupabaseAuth`. Pulls display name from `context.claims` (email/full_name fallback), inserts row, throws on validation failure. Returns the new review.
-- `deleteMyReview({ id })` — `requireSupabaseAuth`, deletes only own row.
-
-### Route redesign: `src/routes/reviews.tsx`
-
-Sections, keeping current hero styling:
-1. Existing hero header (unchanged copy/styling).
-2. **Aggregate strip**: average rating (1 decimal) + total count, computed from loader data.
-3. **Write a review** card:
-   - Signed in → 5-star picker, textarea (10–600 chars, live counter), Submit button. On success, optimistically prepend.
-   - Signed out → cream-bordered CTA card: "Sign in to share your experience" linking to `/auth?next=/reviews`.
-   - One review per session shows a subtle "Thanks!" toast (sonner already present).
-4. **Reviews grid**: 2-column on desktop, 1-column on mobile, cards with stars, name initial avatar, body, relative date. Empty state preserved when zero.
-5. Owner's own review shows a small "Delete" link.
-
-Data loading uses the project's standard TanStack Query loader pattern (`ensureQueryData` + `useSuspenseQuery`). Public loader calls the public `listReviews` server fn (no bearer required).
-
-### Files touched
-- `supabase/migrations/<new>.sql` (table + grants + RLS)
-- `src/lib/reviews.functions.ts` (new)
-- `src/routes/reviews.tsx` (redesign)
-- `src/components/StarRating.tsx` (small reusable display + input)
-
-No design system changes, no new dependencies, no admin moderation UI in this pass.
+## Out of scope
+- Changing auth providers or adding new sign-in methods.
+- Redesigning `/auth` page.
+- Email delivery infra (already set up on `notify.carwalhoscafe.in`).

@@ -15,7 +15,7 @@ export const InviteEmail = ({ siteUrl, confirmationUrl }: InviteEmailProps) => (
     <Body style={styles.main}>
       <Container style={styles.container}>
         <Section style={styles.header}>
-          <Img src={BRAND.logo} alt={BRAND.shopName} width={160} style={styles.logo} />
+          <Img src={BRAND.logo} alt={BRAND.shopName} width={200} style={styles.logo} />
         </Section>
         <Section style={styles.body}>
           <Heading style={styles.h1}>You've been invited</Heading>
