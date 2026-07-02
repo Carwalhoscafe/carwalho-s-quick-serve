@@ -210,12 +210,20 @@ function Analytics() {
   }, [pathname]);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+    const loggedSessions = new Set<string>();
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();
+      if (event === "SIGNED_IN" && session?.user?.id && !loggedSessions.has(session.user.id)) {
+        loggedSessions.add(session.user.id);
+        import("@/lib/users.functions")
+          .then(({ logUserSignIn }) => logUserSignIn())
+          .catch(() => {});
+      }
     });
     return () => sub.subscription.unsubscribe();
   }, [router]);
+
 
   return null;
 }
