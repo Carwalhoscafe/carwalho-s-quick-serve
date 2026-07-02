@@ -65,6 +65,7 @@ type CartContextValue = {
   remove: (id: string) => void;
   setQty: (id: string, qty: number) => void;
   clear: () => void;
+  reorder: (items: { product_id: string; qty: number }[]) => number;
   count: number;
   subtotal: number;
   withProducts: { product: Product; qty: number; lineTotal: number }[];
@@ -73,6 +74,7 @@ type CartContextValue = {
   closeCart: () => void;
   setOpen: (open: boolean) => void;
 };
+
 
 const CartContext = createContext<CartContextValue | null>(null);
 
@@ -130,8 +132,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clear = useCallback(() => setItems([]), []);
 
+  const reorder = useCallback((incoming: { product_id: string; qty: number }[]) => {
+    let added = 0;
+    setItems((prev) => {
+      const next = [...prev];
+      for (const it of incoming) {
+        if (!PRODUCTS.find((p) => p.id === it.product_id)) continue;
+        const idx = next.findIndex((n) => n.id === it.product_id);
+        if (idx >= 0) next[idx] = { ...next[idx], qty: next[idx].qty + it.qty };
+        else next.push({ id: it.product_id, qty: it.qty });
+        added += it.qty;
+      }
+      return next;
+    });
+    setIsOpen(true);
+    return added;
+  }, []);
+
   const openCart = useCallback(() => setIsOpen(true), []);
   const closeCart = useCallback(() => setIsOpen(false), []);
+
 
   const value = useMemo<CartContextValue>(() => {
     const withProducts = items
@@ -151,6 +171,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       remove,
       setQty,
       clear,
+      reorder,
       count,
       subtotal,
       withProducts,
@@ -159,7 +180,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       closeCart,
       setOpen: setIsOpen,
     };
-  }, [items, add, remove, setQty, clear, isOpen, openCart, closeCart]);
+  }, [items, add, remove, setQty, clear, reorder, isOpen, openCart, closeCart]);
+
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
