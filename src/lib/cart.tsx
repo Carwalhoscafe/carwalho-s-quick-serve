@@ -171,6 +171,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       remove,
       setQty,
       clear,
+      reorder,
       count,
       subtotal,
       withProducts,
@@ -179,7 +180,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       closeCart,
       setOpen: setIsOpen,
     };
-  }, [items, add, remove, setQty, clear, isOpen, openCart, closeCart]);
+  }, [items, add, remove, setQty, clear, reorder, isOpen, openCart, closeCart]);
+
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
