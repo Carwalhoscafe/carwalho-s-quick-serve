@@ -27,7 +27,7 @@ export function SiteHeader() {
   const { count, openCart } = useCart();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const currentPath = useRouterState({ select: (s) => s.location.pathname + s.location.search });
+  const currentPath = useRouterState({ select: (s) => s.location.href });
   const [signedIn, setSignedIn] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
