@@ -172,16 +172,16 @@ export const listMyOrders = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data: orders, error } = await context.supabase
       .from("orders")
-      .select("id, order_number, created_at, total, order_status, payment_status, payment_method, order_type, estimated_delivery_label")
+      .select("id, order_number, created_at, total, subtotal, delivery_fee, order_status, payment_status, payment_method, order_type, estimated_delivery_label, delivery_address, delivery_distance_km, customer_name, customer_phone, customer_email, notes")
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) throw new Error(error.message);
     const ids = (orders ?? []).map(o => o.id);
-    let items: { order_id: string; product_name: string; qty: number }[] = [];
+    let items: { order_id: string; product_id: string; product_name: string; qty: number; unit_price: number; line_total: number }[] = [];
     if (ids.length) {
       const { data: rows } = await context.supabase
         .from("order_items")
-        .select("order_id, product_name, qty")
+        .select("order_id, product_id, product_name, qty, unit_price, line_total")
         .in("order_id", ids);
       items = rows ?? [];
     }
@@ -190,3 +190,4 @@ export const listMyOrders = createServerFn({ method: "GET" })
       items: items.filter(i => i.order_id === o.id),
     }));
   });
+
