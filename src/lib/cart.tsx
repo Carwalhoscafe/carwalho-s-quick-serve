@@ -132,8 +132,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clear = useCallback(() => setItems([]), []);
 
+  const reorder = useCallback((incoming: { product_id: string; qty: number }[]) => {
+    let added = 0;
+    setItems((prev) => {
+      const next = [...prev];
+      for (const it of incoming) {
+        if (!PRODUCTS.find((p) => p.id === it.product_id)) continue;
+        const idx = next.findIndex((n) => n.id === it.product_id);
+        if (idx >= 0) next[idx] = { ...next[idx], qty: next[idx].qty + it.qty };
+        else next.push({ id: it.product_id, qty: it.qty });
+        added += it.qty;
+      }
+      return next;
+    });
+    setIsOpen(true);
+    return added;
+  }, []);
+
   const openCart = useCallback(() => setIsOpen(true), []);
   const closeCart = useCallback(() => setIsOpen(false), []);
+
 
   const value = useMemo<CartContextValue>(() => {
     const withProducts = items
