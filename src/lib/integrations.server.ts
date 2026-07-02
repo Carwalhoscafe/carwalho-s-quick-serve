@@ -108,3 +108,96 @@ export async function appendSheetRow(worksheet: string, row: (string | number)[]
     return { ok: false as const, error: String(e) };
   }
 }
+
+async function getSheetValues(range: string): Promise<string[][] | null> {
+  try {
+    const spreadsheetId = await resolveSpreadsheetId();
+    if (!spreadsheetId) return null;
+    const url = `${SHEETS_BASE}/${spreadsheetId}/values/${range}`;
+    const res = await fetch(url, { headers: gatewayHeaders("GOOGLE_SHEETS_API_KEY") });
+    if (!res.ok) {
+      console.warn("[sheets] get failed", range, res.status);
+      return null;
+    }
+    const body = await res.json();
+    return (body.values ?? []) as string[][];
+  } catch (e) {
+    console.warn("[sheets] get exception", e);
+    return null;
+  }
+}
+
+async function updateSheetRange(range: string, values: (string | number)[][]) {
+  try {
+    const spreadsheetId = await resolveSpreadsheetId();
+    if (!spreadsheetId) return { ok: false as const };
+    const url = `${SHEETS_BASE}/${spreadsheetId}/values/${range}?valueInputOption=USER_ENTERED`;
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: gatewayHeaders("GOOGLE_SHEETS_API_KEY"),
+      body: JSON.stringify({ values }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      console.error("[sheets] update failed", res.status, body);
+      return { ok: false as const, error: `Sheets ${res.status}` };
+    }
+    return { ok: true as const };
+  } catch (e) {
+    console.error("[sheets] update exception", e);
+    return { ok: false as const, error: String(e) };
+  }
+}
+
+/**
+ * Upsert a user row into the `Users` worksheet.
+ * Columns: A user_id | B email | C name | D provider | E first_seen | F last_seen | G login_count
+ * Requires a `Users` tab to exist in the spreadsheet (create it manually with headers).
+ */
+export async function upsertUserRow(input: {
+  userId: string;
+  email: string | null;
+  name: string | null;
+  provider: string | null;
+  nowIso: string;
+}) {
+  const rows = await getSheetValues("Users!A:G");
+  const nowLocal = new Date(input.nowIso).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+  // If sheet doesn't exist or is empty, append a header row first then the data row.
+  if (rows == null || rows.length === 0) {
+    await appendSheetRow("Users", ["user_id", "email", "name", "provider", "first_seen", "last_seen", "login_count"]);
+    return appendSheetRow("Users", [
+      input.userId,
+      input.email ?? "",
+      input.name ?? "",
+      input.provider ?? "",
+      nowLocal,
+      nowLocal,
+      1,
+    ]);
+  }
+  // Find existing row (skip header if present).
+  const startIdx = rows[0]?.[0]?.toLowerCase() === "user_id" ? 1 : 0;
+  let foundRow = -1;
+  let currentCount = 0;
+  for (let i = startIdx; i < rows.length; i++) {
+    if (rows[i]?.[0] === input.userId) {
+      foundRow = i + 1; // 1-indexed
+      currentCount = Number(rows[i]?.[6] ?? 0) || 0;
+      break;
+    }
+  }
+  if (foundRow === -1) {
+    return appendSheetRow("Users", [
+      input.userId,
+      input.email ?? "",
+      input.name ?? "",
+      input.provider ?? "",
+      nowLocal,
+      nowLocal,
+      1,
+    ]);
+  }
+  // Update last_seen (F) and login_count (G) only.
+  return updateSheetRange(`Users!F${foundRow}:G${foundRow}`, [[nowLocal, currentCount + 1]]);
+}
