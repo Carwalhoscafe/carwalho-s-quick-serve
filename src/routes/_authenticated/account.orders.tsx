@@ -1,9 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
+import { ShoppingBag } from "lucide-react";
 
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { OrderCard } from "@/components/OrderCard";
+import { OrderDetailDrawer, type OrderDetail } from "@/components/OrderDetailDrawer";
 import { listMyOrders } from "@/lib/orders.functions";
+import { useCart } from "@/lib/cart";
 
 const ordersQuery = queryOptions({
   queryKey: ["my-orders"],
@@ -21,14 +27,23 @@ export const Route = createFileRoute("/_authenticated/account/orders")({
   component: OrdersPage,
 });
 
-function statusColor(s: string) {
-  if (s === "delivered") return "text-emerald-400";
-  if (s === "cancelled") return "text-red-400";
-  return "text-primary";
-}
-
 function OrdersPage() {
   const { data: orders } = useSuspenseQuery(ordersQuery);
+  const { reorder } = useCart();
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  const active = orders.find((o) => o.id === openId) ?? null;
+
+  function handleReorder(o: OrderDetail | (typeof orders)[number]) {
+    const items = o.items.map((i) => ({ product_id: i.product_id, qty: i.qty }));
+    const added = reorder(items);
+    if (added === 0) {
+      toast.error("These items are no longer on the menu.");
+    } else {
+      toast.success(`Added ${added} item${added === 1 ? "" : "s"} to your cart.`);
+      setOpenId(null);
+    }
+  }
 
   return (
     <div className="min-h-screen">
@@ -36,59 +51,55 @@ function OrdersPage() {
         <SiteHeader />
         <div className="mx-auto max-w-4xl px-6">
           <p className="text-xs uppercase tracking-[0.35em] text-primary">My account</p>
-          <h1 className="mt-3 text-4xl text-cream md:text-5xl">Your orders</h1>
+          <h1 className="mt-3 text-4xl text-cream md:text-5xl" style={{ fontFamily: "var(--font-display)" }}>
+            Your orders
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Track past orders, view the full bill, or reorder in one tap.
+          </p>
         </div>
       </div>
 
       <section className="mx-auto max-w-4xl px-6 py-12">
         {orders.length === 0 ? (
-          <div className="rounded-2xl border border-border/70 bg-card/60 p-10 text-center">
-            <p className="text-cream">You haven't placed any orders yet.</p>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-border/70 bg-card/60 p-14 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+              <ShoppingBag className="h-7 w-7 text-primary" />
+            </div>
+            <h2 className="mt-4 text-xl text-cream" style={{ fontFamily: "var(--font-display)" }}>
+              No orders yet
+            </h2>
+            <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+              When you place your first order, it'll show up here so you can track it and reorder any time.
+            </p>
+            <Link
+              to="/menu"
+              className="mt-6 inline-flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Browse the menu
+            </Link>
           </div>
         ) : (
           <ul className="space-y-4">
             {orders.map((o) => (
-              <li key={o.id} className="rounded-2xl border border-border/70 bg-card/60 p-6">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-widest text-muted-foreground">Order</p>
-                    <p className="text-lg text-cream">{o.order_number}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(o.created_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
-                    </p>
-                    {o.estimated_delivery_label && (
-                      <p className="mt-1 text-xs text-primary">
-                        ETA · {o.estimated_delivery_label}
-                      </p>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl text-primary" style={{ fontFamily: "var(--font-display)" }}>
-                      ₹{Number(o.total).toFixed(0)}
-                    </p>
-                    <p className={`text-xs uppercase tracking-widest ${statusColor(o.order_status)}`}>
-                      {o.order_status}
-                    </p>
-                  </div>
-                </div>
-                {o.items?.length > 0 && (
-                  <ul className="mt-3 divide-y divide-border/60 text-sm text-cream/90">
-                    {o.items.map((i, idx) => (
-                      <li key={idx} className="flex justify-between py-2">
-                        <span>{i.product_name}</span>
-                        <span className="text-muted-foreground">× {i.qty}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <p className="mt-3 text-xs text-muted-foreground">
-                  Payment: {o.payment_method === "cod" ? "Cash on Delivery" : "Razorpay"} · {o.payment_status}
-                </p>
+              <li key={o.id}>
+                <OrderCard
+                  order={o}
+                  onView={() => setOpenId(o.id)}
+                  onReorder={() => handleReorder(o)}
+                />
               </li>
             ))}
           </ul>
         )}
       </section>
+
+      <OrderDetailDrawer
+        order={active as OrderDetail | null}
+        open={openId !== null}
+        onOpenChange={(v) => !v && setOpenId(null)}
+        onReorder={handleReorder}
+      />
 
       <SiteFooter />
     </div>
