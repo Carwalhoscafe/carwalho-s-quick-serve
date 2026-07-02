@@ -65,6 +65,7 @@ type CartContextValue = {
   remove: (id: string) => void;
   setQty: (id: string, qty: number) => void;
   clear: () => void;
+  reorder: (items: { product_id: string; qty: number }[]) => number;
   count: number;
   subtotal: number;
   withProducts: { product: Product; qty: number; lineTotal: number }[];
@@ -73,6 +74,7 @@ type CartContextValue = {
   closeCart: () => void;
   setOpen: (open: boolean) => void;
 };
+
 
 const CartContext = createContext<CartContextValue | null>(null);
 
