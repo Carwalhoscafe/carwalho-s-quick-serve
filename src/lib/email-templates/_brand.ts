@@ -15,7 +15,7 @@ export const styles = {
   main: { backgroundColor: '#ffffff', fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif', margin: 0, padding: '24px 12px' },
   container: { maxWidth: '560px', margin: '0 auto', backgroundColor: BRAND.cream, borderRadius: '16px', overflow: 'hidden' as const },
   header: { backgroundColor: BRAND.primary, padding: '40px 24px', textAlign: 'center' as const },
-  logo: { width: '100%', maxWidth: '420px', height: 'auto', margin: '0 auto', display: 'block' as const },
+  logo: { width: '60%', maxWidth: '252px', height: 'auto', margin: '0 auto', display: 'block' as const },
   body: { padding: '32px' },
   h1: { fontSize: '22px', fontWeight: 'bold' as const, color: BRAND.primary, margin: '0 0 16px' },
   text: { fontSize: '14px', color: BRAND.text, lineHeight: '1.6', margin: '0 0 18px' },
