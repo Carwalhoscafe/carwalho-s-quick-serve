@@ -1,59 +1,65 @@
+## What I'll build
 
-## Scope
+### 1. Email verification with 6-digit code (signup + password reset)
 
-Four fixes/integrations, then publish. No visual redesign.
+Replace the current "click a link in email" flow with a code-entry flow.
 
-### 1. My Orders page (post-login)
+- **Signup**: user enters name/email/password → we call Supabase `signUp` with the "email" OTP variant → user sees a 6-digit code input on the same auth page → on submit we call `verifyOtp({ type: 'signup', token, email })` → session is set, redirected to `next` or home.
+- **Password reset**: "Forgot password?" → user enters email → we send a recovery OTP → user types the 6-digit code + new password → we call `verifyOtp({ type: 'recovery', token, email })` then `updateUser({ password })` → signed in with new password.
+- Update the existing auth email templates (`signup` and `recovery` in `src/lib/email-templates/`) to prominently show the `{{ .Token }}` code (big, monospace) with the link kept as a fallback below.
+- Add a resend-code button with a 30s cooldown, and clear error states for expired/invalid codes.
 
-The route `src/routes/_authenticated/account.orders.tsx` exists and uses `listMyOrders`. The likely failure is one of:
-- `SiteHeader` currently doesn't link to `/account/orders` after sign-in, so it looks "not available"
-- Loader throws under prerender because `_authenticated` uses `ssr: false` already — should be fine
-- RLS on `orders` denies SELECT
+### 2. Fix ChatGPT (MCP) — "unauthorized request origin"
 
-Steps:
-1. Read `SiteHeader.tsx` and add a "My orders" link in the account menu (visible only when signed in).
-2. Confirm `orders` RLS has `SELECT` policy `TO authenticated USING (auth.uid() = user_id)` and `GRANT SELECT ON public.orders TO authenticated` via `supabase--read_query`; if missing, add via migration.
-3. Same for `order_items` (`USING (EXISTS (SELECT 1 FROM orders WHERE orders.id = order_items.order_id AND orders.user_id = auth.uid()))`).
-4. Manually navigate to `/account/orders` via Playwright with the injected session, screenshot, confirm.
+The OAuth authorize call is coming from `https://www.carwalhoscafe.in/` but the managed OAuth server's redirect/origin allow-list doesn't include the custom domain, so `/oauth/authorizations/...` returns 400. Fix by:
 
-### 2. Checkout not loading
+- Re-running the managed OAuth server configuration so the canonical Site URL and allow-list pick up the current custom domain (`www.carwalhoscafe.in`) alongside the Lovable domains.
+- Verifying with the OAuth debug tool that `www.carwalhoscafe.in` appears in the trusted redirect list and consent URL is reachable.
+- Confirming the consent route `/.lovable/oauth/consent` preserves `authorization_id` through both sign-in and sign-up (already present, will spot-check).
 
-No specific symptom given. Investigate:
-1. Open `/checkout` in Playwright with an authenticated session, capture console + network + screenshot.
-2. Most likely: page requires cart items → shows empty state; or Google Maps address autocomplete fails to load (browser key referrer). Verify `AddressAutocomplete` and the Maps JS script URL.
-3. Fix whatever the reproduction surfaces (add cart guard, fix Maps loader, or fix auth wait).
+No code change is expected beyond a possible tweak to the consent route's return-URL preservation if the check surfaces a gap.
 
-### 3. Shrink OAuth email header logo 40%
+### 3. Google auth on desktop
 
-In `src/lib/email-templates/_brand.ts`, change the logo style `maxWidth: '420px'` → `maxWidth: '252px'` (60% of 420). Templates re-use this style, so a single edit propagates.
+You said it's working now — I'll skip changes and just re-verify with a Playwright run on desktop viewport to confirm.
 
-### 4. Google Maps connector
+### 4. Swiggy-style location picker
 
-`.env` already has `VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY`, so the connector is linked. Verify with `standard_connectors--list_connections` and confirm the current `AddressAutocomplete` still uses Places API (New) through the gateway/browser key. No code change unless the checkout repro shows a Maps failure.
+New reusable `LocationPicker` component used on the Checkout page (and available on a "My addresses" section under the account menu).
 
-### 5. Google Analytics 4 (G-1DW57ZD8K3)
+Features:
+- **Detect current location** button → browser Geolocation → reverse-geocode via Google Maps gateway → prefill address.
+- **Search with autocomplete** using Places API (New) `AutocompleteSuggestion.fetchAutocompleteSuggestions()` with a session token and 250ms debounce.
+- **Draggable pin on a Google Map** centered on the selected/detected location; dragging the marker updates lat/lng and re-reverse-geocodes to refresh the address text; user can also fine-tune house/flat number and landmark in separate inputs.
+- **Saved addresses** (Home / Work / Other) for signed-in users: pick from a list, add new, edit, delete, set default. New table `public.saved_addresses` with RLS scoped to `auth.uid()`.
+- Checkout wires the selected address (label, formatted address, lat, lng, landmark) into the order payload it already builds.
 
-Already installed globally in `src/routes/__root.tsx` (gtag script + `send_page_view:false` + a route-change effect firing `event: 'page_view'`). No duplicate scripts to add. Verify with Playwright that `gtag` is defined and `dataLayer` receives a `page_view` on navigation.
+### Files (technical)
 
-### 6. Google auth verification
+Frontend
+- `src/routes/auth.tsx` — split into email step + OTP step; add password-reset OTP flow; add resend cooldown.
+- `src/lib/email-templates/signup.tsx`, `recovery.tsx` — surface `{{ .Token }}` prominently.
+- `src/components/location/LocationPicker.tsx` (new) — map + autocomplete + GPS + draggable marker.
+- `src/components/location/SavedAddresses.tsx` (new) — list/add/edit/delete/set-default.
+- `src/routes/_authenticated/account.addresses.tsx` (new) — manage saved addresses.
+- `src/routes/_authenticated/checkout.tsx` — use `LocationPicker` and saved addresses.
+- `src/lib/maps/*.functions.ts` — server fns for reverse-geocode via connector gateway.
 
-Sign-in path in `src/routes/auth.tsx` uses `lovable.auth.signInWithOAuth('google', …)` — correct. Verify via `supabase--configure_social_auth` provider status and by running the sign-in flow in Playwright (or just checking the button renders and calls into the OAuth broker).
+Backend
+- Migration: `public.saved_addresses` (label, recipient_name, phone, line1, line2, landmark, city, pincode, lat, lng, is_default, user_id) with GRANTs + RLS `auth.uid() = user_id`.
 
-### 7. Publish
+Config
+- `supabase--configure_oauth_server` re-run to refresh Site URL / allow-list for the custom domain.
 
-After verifications pass and no critical security findings, call `security--get_scan_results`, then `preview_ui--publish`.
+### Verification
 
-## Out of scope
+- Playwright: sign up with a test address, receive OTP (check auth logs), type it, confirm session lands on `/`.
+- Playwright: forgot password → OTP → new password → sign in.
+- curl the MCP `/.well-known/oauth-protected-resource` and `/oauth/authorize` from the custom domain to confirm no more "unauthorized request origin".
+- Playwright on desktop: Google sign-in completes to a session.
+- Playwright: Checkout → detect location, search, drag pin, save address, place order.
 
-- Any visual redesign (per your answer)
-- Rewriting orders/checkout UI
-- Any GA duplicate installation
+### Out of scope
 
-## Verification checklist
-
-- [ ] `/account/orders` renders orders after sign-in (Playwright screenshot)
-- [ ] `/checkout` reaches the form (Playwright screenshot)
-- [ ] Email header logo renders at ~252px max (visual inspection of rendered HTML)
-- [ ] `window.gtag` exists and `dataLayer` gets a `page_view` on route change
-- [ ] Google sign-in button initiates OAuth (network request to broker)
-- [ ] Publish succeeds
+- No redesign.
+- No changes to the menu, cart, orders list, GA4, or email logo (all done previously).
