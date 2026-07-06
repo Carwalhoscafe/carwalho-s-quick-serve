@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { AddressAutocomplete, type SelectedAddress } from "@/components/AddressAutocomplete";
+import { LocationPicker, type PickedLocation } from "@/components/location/LocationPicker";
 import { useCart, MIN_ORDER_VALUE } from "@/lib/cart";
 import { supabase } from "@/integrations/supabase/client";
 import { submitOrder } from "@/lib/orders.functions";
@@ -34,8 +34,7 @@ function CheckoutPage() {
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [addressDetails, setAddressDetails] = useState("");
-  const [picked, setPicked] = useState<SelectedAddress | null>(null);
+  const [picked, setPicked] = useState<PickedLocation | null>(null);
   const [notes, setNotes] = useState("");
   const [payment, setPayment] = useState<"cod" | "razorpay">("cod");
 
@@ -63,9 +62,8 @@ function CheckoutPage() {
       setErr(`Sorry, you're ${distanceKm!.toFixed(1)} km away. We only deliver within ${DELIVERY_RADIUS_KM} km of Pallavaram.`);
       return;
     }
-    const fullAddress = addressDetails
-      ? `${addressDetails} - ${picked.formattedAddress}`
-      : picked.formattedAddress;
+    const parts = [picked.landmark, picked.formattedAddress].filter(Boolean);
+    const fullAddress = parts.join(" - ");
 
     setSubmitting(true); setErr(null);
     try {
@@ -184,23 +182,15 @@ function CheckoutPage() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs uppercase tracking-widest text-muted-foreground">Delivery address</label>
-                  <AddressAutocomplete onSelect={setPicked} onClear={() => setPicked(null)} />
-                  {picked && !tooFar && (
-                    <p className="text-xs text-emerald-400">
-                      ✓ {picked.formattedAddress} ({distanceKm!.toFixed(1)} km from shop)
-                    </p>
-                  )}
+                  <LocationPicker userId={user.id} onChange={setPicked} />
                   {picked && tooFar && (
                     <p className="text-xs text-destructive">
                       Sorry, you're {distanceKm!.toFixed(1)} km away. We only deliver within {DELIVERY_RADIUS_KM} km of Pallavaram.
                     </p>
                   )}
-                  <input
-                    value={addressDetails}
-                    onChange={(e) => setAddressDetails(e.target.value)}
-                    placeholder="Flat / floor / landmark (optional)"
-                    className="w-full rounded-lg border border-border/70 bg-background px-4 py-3 text-sm text-cream"
-                  />
+                  {picked && !tooFar && distanceKm != null && (
+                    <p className="text-xs text-emerald-400">{distanceKm.toFixed(1)} km from shop</p>
+                  )}
                 </div>
                 <textarea value={notes} onChange={e=>setNotes(e.target.value)} rows={2}
                   placeholder="Notes (optional)"
