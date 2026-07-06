@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "sdk_version": "0.20.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://iipitfbjaqrejqocyilh.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "carwalhos-cafe-mcp",
+      "version": "0.1.0",
+      "title": "Carwalho's Cafe"
+    },
+    "tools": [
+      {
+        "name": "list_menu",
+        "title": "List menu",
+        "description": "List the current Carwalho's Cafe menu with prices in INR.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_my_orders",
+        "title": "List my orders",
+        "description": "List the signed-in user's recent Carwalho's Cafe orders (most recent first).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "description": "Max orders to return (default 10).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_order",
+        "title": "Get order details",
+        "description": "Fetch full details (items, bill, status) of one of the signed-in user's orders by order number.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "order_number": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Order number, e.g. CC-20260706-ABCDE"
+            }
+          },
+          "required": [
+            "order_number"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
