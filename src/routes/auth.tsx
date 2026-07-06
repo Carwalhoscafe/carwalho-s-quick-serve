@@ -58,8 +58,9 @@ function AuthPage() {
 
   async function signInGoogle() {
     setErr(null);
+    const nextParam = next ? "?next=" + encodeURIComponent(next) : "";
     const res = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: PROD_ORIGIN + "/auth",
+      redirect_uri: PROD_ORIGIN + "/auth" + nextParam,
     });
     if (res.error) setErr(res.error.message || "Google sign-in failed");
   }
