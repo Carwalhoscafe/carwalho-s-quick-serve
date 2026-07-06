@@ -7,24 +7,32 @@ interface SignupEmailProps {
   siteUrl: string
   recipient: string
   confirmationUrl: string
+  token?: string
 }
 
-export const SignupEmail = ({ siteUrl, recipient, confirmationUrl }: SignupEmailProps) => (
+export const SignupEmail = ({ siteUrl, recipient, confirmationUrl, token }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Confirm your email for {BRAND.shopName}</Preview>
+    <Preview>Your {BRAND.shopName} verification code</Preview>
     <Body style={styles.main}>
       <Container style={styles.container}>
         <Section style={styles.header}>
-          <Img src={BRAND.logo} alt={BRAND.shopName} width={420} style={styles.logo} />
+          <Img src={BRAND.logo} alt={BRAND.shopName} width={252} style={styles.logo} />
         </Section>
         <Section style={styles.body}>
           <Heading style={styles.h1}>Welcome to {BRAND.shopName}</Heading>
           <Text style={styles.text}>
-            Thanks for signing up at{' '}
+            Confirm <strong>{recipient}</strong> to start ordering fresh sugarcane juice and tender coconut delivery from{' '}
             <Link href={siteUrl} style={styles.link}><strong>{BRAND.shopName}</strong></Link>.
-            Please confirm <strong>{recipient}</strong> to start ordering fresh sugarcane juice and tender coconut delivery.
           </Text>
+          {token && (
+            <>
+              <Text style={styles.text}>Enter this 6-digit code on the sign-in page:</Text>
+              <Text style={styles.code}>{token}</Text>
+              <Text style={styles.footer}>This code expires in 60 minutes.</Text>
+            </>
+          )}
+          <Text style={styles.text}>Or tap the button below:</Text>
           <Button style={styles.button} href={confirmationUrl}>Confirm my email</Button>
           <Text style={styles.footer}>
             If you didn't create an account, you can safely ignore this email.
