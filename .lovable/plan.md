@@ -1,59 +1,59 @@
-## What's already tracked to Google Sheets today
 
-- **Orders tab** — every confirmed order (number, date/time, customer, items, total, payment, status, ETA).
-- **Contact tab** — contact form messages.
-- **Newsletter tab** — email signups.
-- **Logins/Users** — nothing today.
+## Scope
 
-## Plan
+Four fixes/integrations, then publish. No visual redesign.
 
-### 1. User tracking (Users tab in Google Sheets)
+### 1. My Orders page (post-login)
 
-- Add a `logUserSignIn` server function (uses `requireSupabaseAuth`) that upserts a single row per user in a `Users` worksheet: `user_id, email, name, provider, first_seen, last_seen, login_count`.
-- Call it once on session establishment from `src/routes/__root.tsx` inside the existing `onAuthStateChange` listener (fire on `SIGNED_IN` only, dedupe per session so tab-focus token refreshes don't spam it).
-- Because Sheets has no native upsert, the fn will read the `Users` sheet, find the row by `user_id`, then either append (first login) or update `last_seen` + increment `login_count`. Uses the same gateway helpers already in `integrations.server.ts`.
+The route `src/routes/_authenticated/account.orders.tsx` exists and uses `listMyOrders`. The likely failure is one of:
+- `SiteHeader` currently doesn't link to `/account/orders` after sign-in, so it looks "not available"
+- Loader throws under prerender because `_authenticated` uses `ssr: false` already — should be fine
+- RLS on `orders` denies SELECT
 
-### 2. Swiggy-style My Orders page (`/account/orders`)
+Steps:
+1. Read `SiteHeader.tsx` and add a "My orders" link in the account menu (visible only when signed in).
+2. Confirm `orders` RLS has `SELECT` policy `TO authenticated USING (auth.uid() = user_id)` and `GRANT SELECT ON public.orders TO authenticated` via `supabase--read_query`; if missing, add via migration.
+3. Same for `order_items` (`USING (EXISTS (SELECT 1 FROM orders WHERE orders.id = order_items.order_id AND orders.user_id = auth.uid()))`).
+4. Manually navigate to `/account/orders` via Playwright with the injected session, screenshot, confirm.
 
-Rebuild the existing page with three chosen features:
+### 2. Checkout not loading
 
-**Order card (list view)**
-- Left: stacked circular thumbnails of the products in the order (uses existing product images from `src/lib/cart.tsx`).
-- Middle: order status pill (Confirmed / Preparing / Out for delivery / Delivered / Cancelled) + timestamp + ETA line + short "Item A, Item B and 1 more" summary.
-- Right: total (₹), and two buttons: **View details** and **Reorder**.
-- Divider between orders, subtle hover lift, Swiggy-style spacing.
+No specific symptom given. Investigate:
+1. Open `/checkout` in Playwright with an authenticated session, capture console + network + screenshot.
+2. Most likely: page requires cart items → shows empty state; or Google Maps address autocomplete fails to load (browser key referrer). Verify `AddressAutocomplete` and the Maps JS script URL.
+3. Fix whatever the reproduction surfaces (add cart guard, fix Maps loader, or fix auth wait).
 
-**Order detail drawer** (Shadcn Sheet, slides from right, matches CartDrawer)
-- Header: order number, placed-at, status pill, ETA.
-- Items list with thumbnail, name, qty × unit price, line total.
-- Bill summary: subtotal, delivery fee, total.
-- Delivery block: address, distance, customer phone, notes.
-- Payment block: method + payment status.
-- Footer CTA: **Reorder** (primary) + **Need help?** link to `/contact`.
+### 3. Shrink OAuth email header logo 40%
 
-**Reorder action**
-- Adds a `reorderById` helper in `src/lib/cart.tsx` that takes an order's items and merges them into the current cart (increments qty if already present), opens the cart drawer, and toasts "Added N items to cart".
-- Wired to both the list card button and the drawer footer button.
+In `src/lib/email-templates/_brand.ts`, change the logo style `maxWidth: '420px'` → `maxWidth: '252px'` (60% of 420). Templates re-use this style, so a single edit propagates.
 
-**Data**
-- Extend `listMyOrders` to also return `subtotal`, `delivery_fee`, `delivery_address`, `delivery_distance_km`, `notes`, and `order_items.unit_price / product_id` so the drawer can render the full bill and reorder can match items back to the catalog.
-- No schema changes needed — all columns already exist.
+### 4. Google Maps connector
 
-**Empty state**
-- Swiggy-like illustration block with "No orders yet" + CTA to `/menu`.
+`.env` already has `VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY`, so the connector is linked. Verify with `standard_connectors--list_connections` and confirm the current `AddressAutocomplete` still uses Places API (New) through the gateway/browser key. No code change unless the checkout repro shows a Maps failure.
 
-### 3. Files touched
+### 5. Google Analytics 4 (G-1DW57ZD8K3)
 
-- `src/lib/integrations.server.ts` — add `upsertUserRow` helper (read Users sheet, find row, append or update).
-- `src/lib/users.functions.ts` (new) — `logUserSignIn` server fn.
-- `src/routes/__root.tsx` — call `logUserSignIn` on `SIGNED_IN`, guarded by a session-id ref.
-- `src/lib/orders.functions.ts` — expand `listMyOrders` return shape; add `getOrderDetail(orderId)` fn for the drawer.
-- `src/lib/cart.tsx` — add `reorder(items)` helper.
-- `src/components/OrderCard.tsx` (new) and `src/components/OrderDetailDrawer.tsx` (new).
-- `src/routes/_authenticated/account.orders.tsx` — rebuilt to use the new components + status filter-free Swiggy layout.
+Already installed globally in `src/routes/__root.tsx` (gtag script + `send_page_view:false` + a route-change effect firing `event: 'page_view'`). No duplicate scripts to add. Verify with Playwright that `gtag` is defined and `dataLayer` receives a `page_view` on navigation.
 
-### Out of scope
+### 6. Google auth verification
 
-- No per-login history sheet (you chose Users-only).
-- No filter/search on the orders list (not selected).
-- No changes to admin dashboard or order-status workflow.
+Sign-in path in `src/routes/auth.tsx` uses `lovable.auth.signInWithOAuth('google', …)` — correct. Verify via `supabase--configure_social_auth` provider status and by running the sign-in flow in Playwright (or just checking the button renders and calls into the OAuth broker).
+
+### 7. Publish
+
+After verifications pass and no critical security findings, call `security--get_scan_results`, then `preview_ui--publish`.
+
+## Out of scope
+
+- Any visual redesign (per your answer)
+- Rewriting orders/checkout UI
+- Any GA duplicate installation
+
+## Verification checklist
+
+- [ ] `/account/orders` renders orders after sign-in (Playwright screenshot)
+- [ ] `/checkout` reaches the form (Playwright screenshot)
+- [ ] Email header logo renders at ~252px max (visual inspection of rendered HTML)
+- [ ] `window.gtag` exists and `dataLayer` gets a `page_view` on route change
+- [ ] Google sign-in button initiates OAuth (network request to broker)
+- [ ] Publish succeeds
