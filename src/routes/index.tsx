@@ -45,11 +45,31 @@ export const Route = createFileRoute("/")({
 });
 
 
-const valueProps = [
-  { icon: Sparkles, title: "Freshly Prepared", body: "Made fresh daily from premium tender coconuts and hand-selected sugarcane." },
-  { icon: MapPin, title: "Event & Office Delivery", body: "Reliable delivery for offices, meetings, schools, events, and community gatherings." },
-  { icon: Clock, title: "Advance Booking Available", body: "Schedule your delivery in advance and receive fresh drinks exactly when needed." },
-  { icon: Leaf, title: "Healthy Hydration", body: "A natural alternative to soft drinks, packed with freshness and goodness." },
+const promisePillars = [
+  {
+    index: "01",
+    kicker: "Freshness",
+    title: ["Freshly", "Prepared."],
+    body: "Made fresh daily from premium tender coconuts and hand-selected sugarcane.",
+  },
+  {
+    index: "02",
+    kicker: "Delivery",
+    title: ["Event &", "Office."],
+    body: "Reliable delivery for offices, meetings, schools, events, and community gatherings.",
+  },
+  {
+    index: "03",
+    kicker: "Schedule",
+    title: ["Book in", "Advance."],
+    body: "Schedule your delivery ahead and receive fresh drinks exactly when needed.",
+  },
+  {
+    index: "04",
+    kicker: "Nature",
+    title: ["Healthy", "Hydration."],
+    body: "A natural alternative to soft drinks, packed with freshness and goodness.",
+  },
 ];
 
 function Home() {
