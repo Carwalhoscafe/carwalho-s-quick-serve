@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Minus, Plus, ShoppingBag, MapPinned, Truck } from "lucide-react";
+import { ArrowRight, Leaf, MapPin, Clock, Sparkles, Minus, Plus, ShoppingBag, MapPinned, Truck } from "lucide-react";
 
 import heroAsset from "@/assets/carwalhos-hero.png.asset.json";
 import socialAsset from "@/assets/carwalhos-social.png.asset.json";
@@ -45,31 +45,11 @@ export const Route = createFileRoute("/")({
 });
 
 
-const promisePillars = [
-  {
-    index: "01",
-    kicker: "Freshness",
-    title: ["Freshly", "Prepared."],
-    body: "Made fresh daily from premium tender coconuts and hand-selected sugarcane.",
-  },
-  {
-    index: "02",
-    kicker: "Delivery",
-    title: ["Event &", "Office."],
-    body: "Reliable delivery for offices, meetings, schools, events, and community gatherings.",
-  },
-  {
-    index: "03",
-    kicker: "Schedule",
-    title: ["Book in", "Advance."],
-    body: "Schedule your delivery ahead and receive fresh drinks exactly when needed.",
-  },
-  {
-    index: "04",
-    kicker: "Nature",
-    title: ["Healthy", "Hydration."],
-    body: "A natural alternative to soft drinks, packed with freshness and goodness.",
-  },
+const valueProps = [
+  { icon: Sparkles, title: "Freshly Prepared", body: "Made fresh daily from premium tender coconuts and hand-selected sugarcane." },
+  { icon: MapPin, title: "Event & Office Delivery", body: "Reliable delivery for offices, meetings, schools, events, and community gatherings." },
+  { icon: Clock, title: "Advance Booking Available", body: "Schedule your delivery in advance and receive fresh drinks exactly when needed." },
+  { icon: Leaf, title: "Healthy Hydration", body: "A natural alternative to soft drinks, packed with freshness and goodness." },
 ];
 
 function Home() {
@@ -134,79 +114,18 @@ function Home() {
         </div>
       </section>
 
-      {/* ── Section 2 · The Promise (Impeccable / Neo Kinpaku) ──────── */}
-      <section
-        id="promise"
-        className="kk-band relative border-y"
-        style={{
-          borderTopColor: "var(--kinpaku-rule-strong)",
-          borderBottomColor: "var(--kinpaku-rule-strong)",
-        }}
-      >
-        <div className="mx-auto max-w-7xl px-6 py-24 md:py-32">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="kk-eyebrow">The Promise</p>
-              <h2 className="kk-display mt-4 max-w-2xl text-4xl md:text-6xl">
-                Four reasons the jug
-                <br />
-                tastes like the field.
-              </h2>
+      {/* ── Section 2 · Value strip ─────────────────────────────────── */}
+      <section className="border-y border-border/60 bg-card/30">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-8 px-6 py-12 md:grid-cols-4">
+          {valueProps.map(({ icon: Icon, title, body }) => (
+            <div key={title} className="flex flex-col items-start gap-3">
+              <Icon className="h-6 w-6 text-primary" strokeWidth={1.5} />
+              <h3 className="text-lg text-cream">{title}</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">{body}</p>
             </div>
-            <p
-              className="max-w-xs text-sm leading-relaxed"
-              style={{ color: "var(--text-muted-kk)", fontFamily: "var(--font-impeccable-body)" }}
-            >
-              Pressed at dawn. Delivered before lunch. Nothing between the field and your glass but a
-              stainless kettle and a short drive.
-            </p>
-          </div>
-
-          <div className="mt-16 grid grid-cols-1 gap-px bg-transparent sm:grid-cols-2 md:mt-20 md:grid-cols-4">
-            {promisePillars.map((p) => (
-              <article
-                key={p.index}
-                className="kk-panel flex min-h-[26rem] flex-col justify-between p-8 md:p-10"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="kk-eyebrow">{p.index}</span>
-                  <span
-                    aria-hidden
-                    className="h-px w-8"
-                    style={{ background: "var(--kinpaku-rule-strong)" }}
-                  />
-                  <span className="kk-eyebrow">{p.kicker}</span>
-                </div>
-
-                <h3 className="kk-display mt-16 text-4xl md:text-[2.6rem]">
-                  {p.title[0]}
-                  <br />
-                  {p.title[1]}
-                </h3>
-
-                <div className="mt-8">
-                  <hr className="kk-rule" />
-                  <p
-                    className="mt-6 text-[0.98rem] leading-[1.75]"
-                    style={{ color: "var(--text-warm)", fontFamily: "var(--font-impeccable-body)" }}
-                  >
-                    {p.body}
-                  </p>
-                </div>
-
-                <div
-                  aria-hidden
-                  className="mt-8 flex justify-end text-2xl"
-                  style={{ color: "var(--kinpaku)", fontFamily: "var(--font-impeccable-display)" }}
-                >
-                  ↗
-                </div>
-              </article>
-            ))}
-          </div>
+          ))}
         </div>
       </section>
-
 
       {/* ── Section 3 · Featured menu ───────────────────────────────── */}
       <section className="mx-auto max-w-7xl px-6 py-24">

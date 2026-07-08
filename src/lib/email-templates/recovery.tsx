@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Body, Container, Head, Heading, Html, Img, Preview, Section, Text } from '@react-email/components'
+import { Body, Button, Container, Head, Heading, Html, Img, Preview, Section, Text } from '@react-email/components'
 import { BRAND, styles } from './_brand'
 
 interface RecoveryEmailProps {
@@ -8,7 +8,7 @@ interface RecoveryEmailProps {
   token?: string
 }
 
-export const RecoveryEmail = ({ token }: RecoveryEmailProps) => (
+export const RecoveryEmail = ({ confirmationUrl, token }: RecoveryEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>Reset your password for {BRAND.shopName}</Preview>
@@ -22,9 +22,15 @@ export const RecoveryEmail = ({ token }: RecoveryEmailProps) => (
           <Text style={styles.text}>
             We received a request to reset your {BRAND.shopName} password.
           </Text>
-          <Text style={styles.text}>Enter this 6-digit code on the reset page:</Text>
-          <Text style={styles.code}>{token ?? '------'}</Text>
-          <Text style={styles.footer}>This code expires in 60 minutes.</Text>
+          {token && (
+            <>
+              <Text style={styles.text}>Enter this 6-digit code on the reset page:</Text>
+              <Text style={styles.code}>{token}</Text>
+              <Text style={styles.footer}>This code expires in 60 minutes.</Text>
+            </>
+          )}
+          <Text style={styles.text}>Or tap the button below:</Text>
+          <Button style={styles.button} href={confirmationUrl}>Reset password</Button>
           <Text style={styles.footer}>
             If you didn't request this, you can safely ignore this email. Your password will stay the same.
           </Text>
@@ -38,4 +44,3 @@ export const RecoveryEmail = ({ token }: RecoveryEmailProps) => (
 )
 
 export default RecoveryEmail
-
