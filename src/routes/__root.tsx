@@ -131,7 +131,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { rel: "preconnect", href: "https://www.googletagmanager.com" },
         {
           rel: "stylesheet",
-          href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Pinyon+Script&family=Work+Sans:wght@300;400;500;600&display=swap",
+          href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Pinyon+Script&family=Work+Sans:wght@300;400;500;600&family=Alumni+Sans:wght@100;300;400&family=Albert+Sans:wght@400;500&display=swap",
         },
       ],
       scripts: [
