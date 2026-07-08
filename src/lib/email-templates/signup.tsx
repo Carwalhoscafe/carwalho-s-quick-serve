@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Body, Button, Container, Head, Heading, Html, Img, Link, Preview, Section, Text } from '@react-email/components'
+import { Body, Container, Head, Heading, Html, Img, Link, Preview, Section, Text } from '@react-email/components'
 import { BRAND, styles } from './_brand'
 
 interface SignupEmailProps {
@@ -10,7 +10,7 @@ interface SignupEmailProps {
   token?: string
 }
 
-export const SignupEmail = ({ siteUrl, recipient, confirmationUrl, token }: SignupEmailProps) => (
+export const SignupEmail = ({ siteUrl, recipient, token }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>Your {BRAND.shopName} verification code</Preview>
@@ -25,15 +25,9 @@ export const SignupEmail = ({ siteUrl, recipient, confirmationUrl, token }: Sign
             Confirm <strong>{recipient}</strong> to start ordering fresh sugarcane juice and tender coconut delivery from{' '}
             <Link href={siteUrl} style={styles.link}><strong>{BRAND.shopName}</strong></Link>.
           </Text>
-          {token && (
-            <>
-              <Text style={styles.text}>Enter this 6-digit code on the sign-in page:</Text>
-              <Text style={styles.code}>{token}</Text>
-              <Text style={styles.footer}>This code expires in 60 minutes.</Text>
-            </>
-          )}
-          <Text style={styles.text}>Or tap the button below:</Text>
-          <Button style={styles.button} href={confirmationUrl}>Confirm my email</Button>
+          <Text style={styles.text}>Enter this 6-digit code on the sign-in page to verify your email:</Text>
+          <Text style={styles.code}>{token ?? '------'}</Text>
+          <Text style={styles.footer}>This code expires in 60 minutes.</Text>
           <Text style={styles.footer}>
             If you didn't create an account, you can safely ignore this email.
           </Text>
@@ -48,3 +42,4 @@ export const SignupEmail = ({ siteUrl, recipient, confirmationUrl, token }: Sign
 )
 
 export default SignupEmail
+
