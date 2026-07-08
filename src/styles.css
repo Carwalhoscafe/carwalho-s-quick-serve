@@ -98,6 +98,21 @@
   --font-script: "Pinyon Script", "Cormorant Garamond", cursive;
   --font-sans: "Work Sans", ui-sans-serif, system-ui, sans-serif;
 
+  /* Impeccable / Neo Kinpaku tokens — used by the "Promise" band on the homepage */
+  --lacquer: oklch(7% 0.006 95);
+  --lacquer-raised: oklch(11% 0.006 95);
+  --lacquer-graphite: oklch(15% 0.008 95);
+  --kinpaku: oklch(84% 0.19 80.46);
+  --kinpaku-pale: oklch(86% 0.07 84);
+  --kinpaku-rule: oklch(78% 0 0 / 0.16);
+  --kinpaku-rule-strong: oklch(74% 0.09 82 / 0.6);
+  --champagne: oklch(91% 0 0);
+  --text-warm: oklch(88% 0 0);
+  --text-muted-kk: oklch(72% 0 0);
+  --font-impeccable-display: "Alumni Sans", "Cormorant Garamond", ui-serif, serif;
+  --font-impeccable-body: "Albert Sans", "Work Sans", ui-sans-serif, sans-serif;
+  --font-impeccable-mono: ui-monospace, "SFMono-Regular", "Roboto Mono", Consolas, monospace;
+
   --chart-1: oklch(0.82 0.16 78);
   --chart-2: oklch(0.62 0.2 35);
   --chart-3: oklch(0.36 0.09 340);
