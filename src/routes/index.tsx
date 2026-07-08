@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Leaf, MapPin, Clock, Sparkles, Minus, Plus, ShoppingBag, MapPinned, Truck } from "lucide-react";
+import { ArrowRight, Minus, Plus, ShoppingBag, MapPinned, Truck } from "lucide-react";
 
 import heroAsset from "@/assets/carwalhos-hero.png.asset.json";
 import socialAsset from "@/assets/carwalhos-social.png.asset.json";
