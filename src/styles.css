@@ -152,3 +152,70 @@
     letter-spacing: -0.01em;
   }
 }
+
+/* ── Impeccable "Promise" band ─────────────────────────────────
+   Neo Kinpaku aesthetic: warm-black lacquer + gold hairline. */
+.kk-band {
+  background-color: var(--lacquer);
+  color: var(--text-warm);
+  font-family: var(--font-impeccable-body);
+}
+
+.kk-eyebrow {
+  font-family: var(--font-impeccable-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--kinpaku);
+}
+
+.kk-display {
+  font-family: var(--font-impeccable-display);
+  font-weight: 100;
+  letter-spacing: -0.01em;
+  line-height: 1.02;
+  color: var(--champagne);
+}
+
+.kk-panel {
+  position: relative;
+  background-color: var(--lacquer-raised);
+  border: 1px solid var(--kinpaku-rule);
+  overflow: hidden;
+  transition: border-color 400ms ease;
+}
+.kk-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 -100% auto 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--kinpaku) 45%,
+    var(--kinpaku-pale) 50%,
+    var(--kinpaku) 55%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+.kk-panel:hover {
+  border-color: var(--kinpaku-rule-strong);
+}
+.kk-panel:hover::before {
+  animation: kk-sheen 900ms ease-out forwards;
+}
+@keyframes kk-sheen {
+  0%   { transform: translateX(-100%); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+.kk-rule {
+  height: 1px;
+  width: 40%;
+  background: var(--kinpaku-rule-strong);
+  border: 0;
+}
