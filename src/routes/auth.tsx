@@ -37,12 +37,21 @@ function AuthPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"email" | "phone">("email");
   const [email, setEmail] = useState("");
+  const [emailCode, setEmailCode] = useState("");
+  const [emailCodeSent, setEmailCodeSent] = useState(false);
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [resendIn, setResendIn] = useState(0);
+
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const t = setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendIn]);
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
@@ -65,16 +74,29 @@ function AuthPage() {
     if (res.error) setErr(res.error.message || "Google sign-in failed");
   }
 
-  async function sendEmailLink(e: React.FormEvent) {
+  async function sendEmailCode(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true); setErr(null); setMsg(null);
+    // Omitting emailRedirectTo tells Supabase to send the 6-digit code template.
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: PROD_ORIGIN + "/auth?next=" + encodeURIComponent(next ?? "/checkout") },
+      options: { shouldCreateUser: true },
     });
     setBusy(false);
     if (error) setErr(error.message);
-    else setMsg("Check your inbox for a magic sign-in link.");
+    else {
+      setEmailCodeSent(true);
+      setResendIn(30);
+      setMsg("We sent a 6-digit code to your email. It expires in about an hour.");
+    }
+  }
+
+  async function verifyEmailCode(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true); setErr(null);
+    const { error } = await supabase.auth.verifyOtp({ email, token: emailCode.trim(), type: "email" });
+    setBusy(false);
+    if (error) setErr(error.message);
   }
 
   async function sendPhoneOtp(e: React.FormEvent) {
@@ -122,9 +144,9 @@ function AuthPage() {
 
           <div className="flex gap-2 text-xs">
             <button
-              onClick={() => { setMode("email"); setOtpSent(false); setMsg(null); setErr(null); }}
+              onClick={() => { setMode("email"); setEmailCodeSent(false); setEmailCode(""); setMsg(null); setErr(null); }}
               className={`flex-1 rounded-full border px-3 py-2 ${mode === "email" ? "border-primary text-primary" : "border-border/60 text-muted-foreground"}`}
-            >Email link</button>
+            >Email code</button>
             <button
               onClick={() => { setMode("phone"); setOtpSent(false); setMsg(null); setErr(null); }}
               className={`flex-1 rounded-full border px-3 py-2 ${mode === "phone" ? "border-primary text-primary" : "border-border/60 text-muted-foreground"}`}
@@ -132,16 +154,46 @@ function AuthPage() {
           </div>
 
           {mode === "email" ? (
-            <form onSubmit={sendEmailLink} className="space-y-3">
-              <input
-                type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="w-full rounded-lg border border-border/70 bg-background px-4 py-3 text-sm text-cream"
-              />
-              <button disabled={busy} className="w-full rounded-full border border-primary/60 px-5 py-3 text-sm font-semibold text-cream hover:bg-primary/10 disabled:opacity-50">
-                {busy ? "Sending..." : "Send magic link"}
-              </button>
-            </form>
+            !emailCodeSent ? (
+              <form onSubmit={sendEmailCode} className="space-y-3">
+                <input
+                  type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full rounded-lg border border-border/70 bg-background px-4 py-3 text-sm text-cream"
+                />
+                <button disabled={busy} className="w-full rounded-full border border-primary/60 px-5 py-3 text-sm font-semibold text-cream hover:bg-primary/10 disabled:opacity-50">
+                  {busy ? "Sending..." : "Send code"}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={verifyEmailCode} className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Code sent to <span className="text-cream">{email}</span>.
+                </p>
+                <input
+                  inputMode="numeric" autoFocus required value={emailCode}
+                  onChange={(e) => setEmailCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="6-digit code" maxLength={6}
+                  className="w-full rounded-lg border border-border/70 bg-background px-4 py-3 text-center text-lg tracking-[0.6em] text-cream"
+                />
+                <button disabled={busy || emailCode.length !== 6} className="w-full rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50">
+                  {busy ? "Verifying..." : "Verify & sign in"}
+                </button>
+                <div className="flex items-center justify-between text-xs">
+                  <button
+                    type="button"
+                    onClick={() => { setEmailCodeSent(false); setEmailCode(""); setMsg(null); setErr(null); }}
+                    className="text-muted-foreground underline hover:text-cream"
+                  >Change email</button>
+                  <button
+                    type="button"
+                    disabled={busy || resendIn > 0}
+                    onClick={() => sendEmailCode({ preventDefault: () => {} } as React.FormEvent)}
+                    className="text-primary disabled:opacity-50"
+                  >{resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}</button>
+                </div>
+              </form>
+            )
           ) : !otpSent ? (
             <form onSubmit={sendPhoneOtp} className="space-y-3">
               <input
