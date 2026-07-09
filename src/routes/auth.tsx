@@ -74,16 +74,29 @@ function AuthPage() {
     if (res.error) setErr(res.error.message || "Google sign-in failed");
   }
 
-  async function sendEmailLink(e: React.FormEvent) {
+  async function sendEmailCode(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true); setErr(null); setMsg(null);
+    // Omitting emailRedirectTo tells Supabase to send the 6-digit code template.
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: PROD_ORIGIN + "/auth?next=" + encodeURIComponent(next ?? "/checkout") },
+      options: { shouldCreateUser: true },
     });
     setBusy(false);
     if (error) setErr(error.message);
-    else setMsg("Check your inbox for a magic sign-in link.");
+    else {
+      setEmailCodeSent(true);
+      setResendIn(30);
+      setMsg("We sent a 6-digit code to your email. It expires in about an hour.");
+    }
+  }
+
+  async function verifyEmailCode(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true); setErr(null);
+    const { error } = await supabase.auth.verifyOtp({ email, token: emailCode.trim(), type: "email" });
+    setBusy(false);
+    if (error) setErr(error.message);
   }
 
   async function sendPhoneOtp(e: React.FormEvent) {
