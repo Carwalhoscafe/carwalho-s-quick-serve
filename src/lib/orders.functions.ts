@@ -41,17 +41,12 @@ export const submitOrder = createServerFn({ method: "POST" })
     const total = subtotal + (data.delivery_fee ?? 0);
     const number = orderNumber();
 
-    // Server-side delivery radius gate (authoritative).
-    let distanceKm: number | null = null;
+    // Server-side pincode-based serviceability gate (authoritative).
     if (data.order_type === "delivery") {
-      if (data.delivery_lat == null || data.delivery_lng == null) {
-        throw new Error("Please choose your delivery address from the suggestions.");
-      }
       if (!data.delivery_address) throw new Error("Delivery address is required.");
-      distanceKm = distanceFromShopKm(data.delivery_lat, data.delivery_lng);
-      if (distanceKm > DELIVERY_RADIUS_KM) {
+      if (!data.delivery_pincode || !isServiceablePincode(data.delivery_pincode)) {
         throw new Error(
-          `Sorry, your address is ${distanceKm.toFixed(1)} km away. We only deliver within ${DELIVERY_RADIUS_KM} km of Pallavaram.`,
+          "Sorry, we're not delivering to your area yet. We're working to expand our delivery radius soon.",
         );
       }
     }
@@ -66,9 +61,9 @@ export const submitOrder = createServerFn({ method: "POST" })
         customer_email: data.customer_email ?? (claims?.email as string | undefined) ?? null,
         order_type: data.order_type,
         delivery_address: data.delivery_address ?? null,
-        delivery_lat: data.delivery_lat ?? null,
-        delivery_lng: data.delivery_lng ?? null,
-        delivery_distance_km: distanceKm,
+        delivery_lat: null,
+        delivery_lng: null,
+        delivery_distance_km: null,
         notes: data.notes ?? null,
         payment_method: data.payment_method,
         payment_status: data.payment_method === "cod" ? "pending" : "pending",
