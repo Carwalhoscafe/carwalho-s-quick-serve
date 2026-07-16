@@ -1,13 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { AddressAutocomplete, type SelectedAddress } from "@/components/AddressAutocomplete";
 import { useCart, MIN_ORDER_VALUE } from "@/lib/cart";
 import { supabase } from "@/integrations/supabase/client";
 import { submitOrder } from "@/lib/orders.functions";
-import { distanceFromShopKm, DELIVERY_RADIUS_KM } from "@/lib/geo";
+import { isServiceablePincode, isValidPincodeFormat } from "@/lib/pincodes";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -34,13 +33,18 @@ function CheckoutPage() {
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [addressDetails, setAddressDetails] = useState("");
-  const [picked, setPicked] = useState<SelectedAddress | null>(null);
+  const [addressLine, setAddressLine] = useState("");
+  const [landmark, setLandmark] = useState("");
+  const [city, setCity] = useState("Chennai");
+  const [pincode, setPincode] = useState("");
   const [notes, setNotes] = useState("");
   const [payment, setPayment] = useState<"cod" | "razorpay">("cod");
 
-  const distanceKm = picked ? distanceFromShopKm(picked.lat, picked.lng) : null;
-  const tooFar = distanceKm != null && distanceKm > DELIVERY_RADIUS_KM;
+  const pincodeStatus = useMemo(() => {
+    if (!pincode) return "empty" as const;
+    if (!isValidPincodeFormat(pincode)) return "invalid" as const;
+    return isServiceablePincode(pincode) ? "ok" : "unserviceable" as const;
+  }, [pincode]);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -55,17 +59,11 @@ function CheckoutPage() {
   async function placeOrder(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
-    if (!picked) {
-      setErr("Please choose your delivery address from the suggestions.");
+    if (pincodeStatus !== "ok") {
+      setErr("Please enter a serviceable 6-digit pincode.");
       return;
     }
-    if (tooFar) {
-      setErr(`Sorry, you're ${distanceKm!.toFixed(1)} km away. We only deliver within ${DELIVERY_RADIUS_KM} km of Pallavaram.`);
-      return;
-    }
-    const fullAddress = addressDetails
-      ? `${addressDetails} - ${picked.formattedAddress}`
-      : picked.formattedAddress;
+    const fullAddress = [addressLine, landmark, city, pincode].filter(Boolean).join(", ");
 
     setSubmitting(true); setErr(null);
     try {
@@ -76,8 +74,7 @@ function CheckoutPage() {
           customer_email: user.email ?? null,
           order_type: "delivery",
           delivery_address: fullAddress,
-          delivery_lat: picked.lat,
-          delivery_lng: picked.lng,
+          delivery_pincode: pincode,
           notes: notes || null,
           payment_method: payment,
           delivery_fee: 0,
@@ -97,6 +94,8 @@ function CheckoutPage() {
       setSubmitting(false);
     }
   }
+
+  const canSubmit = !submitting && pincodeStatus === "ok" && name.trim() && phone.trim() && addressLine.trim();
 
   return (
     <div className="min-h-screen">
@@ -182,26 +181,55 @@ function CheckoutPage() {
                   <input required value={phone} onChange={e=>setPhone(e.target.value)} placeholder="Phone (+91...)"
                     type="tel" className="rounded-lg border border-border/70 bg-background px-4 py-3 text-sm text-cream" />
                 </div>
+
                 <div className="space-y-2">
                   <label className="text-xs uppercase tracking-widest text-muted-foreground">Delivery address</label>
-                  <AddressAutocomplete onSelect={setPicked} onClear={() => setPicked(null)} />
-                  {picked && !tooFar && (
-                    <p className="text-xs text-emerald-400">
-                      ✓ {picked.formattedAddress} ({distanceKm!.toFixed(1)} km from shop)
-                    </p>
-                  )}
-                  {picked && tooFar && (
-                    <p className="text-xs text-destructive">
-                      Sorry, you're {distanceKm!.toFixed(1)} km away. We only deliver within {DELIVERY_RADIUS_KM} km of Pallavaram.
-                    </p>
-                  )}
                   <input
-                    value={addressDetails}
-                    onChange={(e) => setAddressDetails(e.target.value)}
-                    placeholder="Flat / floor / landmark (optional)"
+                    required
+                    value={addressLine}
+                    onChange={(e) => setAddressLine(e.target.value)}
+                    placeholder="House / flat no, street, area"
                     className="w-full rounded-lg border border-border/70 bg-background px-4 py-3 text-sm text-cream"
                   />
+                  <input
+                    value={landmark}
+                    onChange={(e) => setLandmark(e.target.value)}
+                    placeholder="Landmark (optional)"
+                    className="w-full rounded-lg border border-border/70 bg-background px-4 py-3 text-sm text-cream"
+                  />
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <input
+                      required
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="City"
+                      className="rounded-lg border border-border/70 bg-background px-4 py-3 text-sm text-cream"
+                    />
+                    <input
+                      required
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={pincode}
+                      onChange={(e) => setPincode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      placeholder="Pincode (6 digits)"
+                      className="rounded-lg border border-border/70 bg-background px-4 py-3 text-sm text-cream"
+                    />
+                  </div>
+
+                  {pincodeStatus === "invalid" && (
+                    <p className="text-xs text-destructive">Please enter a valid 6-digit pincode.</p>
+                  )}
+                  {pincodeStatus === "unserviceable" && (
+                    <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
+                      Sorry, we're not delivering to <span className="font-semibold">{pincode}</span> yet.
+                      We're working to expand our delivery area soon.
+                    </div>
+                  )}
+                  {pincodeStatus === "ok" && (
+                    <p className="text-xs text-emerald-400">✓ We deliver to {pincode}.</p>
+                  )}
                 </div>
+
                 <textarea value={notes} onChange={e=>setNotes(e.target.value)} rows={2}
                   placeholder="Notes (optional)"
                   className="w-full rounded-lg border border-border/70 bg-background px-4 py-3 text-sm text-cream" />
@@ -219,7 +247,7 @@ function CheckoutPage() {
                 {err && <p className="text-sm text-destructive">{err}</p>}
 
                 <button
-                  disabled={submitting || !picked || tooFar}
+                  disabled={!canSubmit}
                   className="w-full rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50">
                   {submitting ? "Placing order..." : `Place order - ₹${subtotal}`}
                 </button>
