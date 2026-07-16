@@ -189,6 +189,7 @@ export type Database = {
           delivery_fee: number
           delivery_lat: number | null
           delivery_lng: number | null
+          delivery_pincode: string | null
           estimated_delivery_label: string | null
           id: string
           notes: string | null
@@ -211,6 +212,7 @@ export type Database = {
           delivery_fee?: number
           delivery_lat?: number | null
           delivery_lng?: number | null
+          delivery_pincode?: string | null
           estimated_delivery_label?: string | null
           id?: string
           notes?: string | null
@@ -233,6 +235,7 @@ export type Database = {
           delivery_fee?: number
           delivery_lat?: number | null
           delivery_lng?: number | null
+          delivery_pincode?: string | null
           estimated_delivery_label?: string | null
           id?: string
           notes?: string | null
