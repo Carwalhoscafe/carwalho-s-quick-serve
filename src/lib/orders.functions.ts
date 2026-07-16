@@ -61,6 +61,7 @@ export const submitOrder = createServerFn({ method: "POST" })
         customer_email: data.customer_email ?? (claims?.email as string | undefined) ?? null,
         order_type: data.order_type,
         delivery_address: data.delivery_address ?? null,
+        delivery_pincode: data.delivery_pincode ?? null,
         delivery_lat: null,
         delivery_lng: null,
         delivery_distance_km: null,
